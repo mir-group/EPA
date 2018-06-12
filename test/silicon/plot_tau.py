@@ -9,7 +9,7 @@ f3 = ['{0:s}.intrans'.format(name), '{0:s}.transdos'.format(name)]
 f4 = ['{0:s}.intrans'.format(name), '{0:s}.epa.e'.format(name)]
 f5 = '{0:s}_tau.{1:s}'.format(name, ext)
 
-title = '{0:s}    $x = {1:d}$    $T = {2:d}$K'
+title = '{0:s}    ${1:s} = {2:.2f}$    $T = {3:d}$K'
 mode = [r'$\tau = {0:d}$ fs' , 'EPA']
 tauvc = None
 kappaelzeroj = True
@@ -56,6 +56,13 @@ xx = bandgap / 2
 yy = 1.0e3
 gap = numpy.array([[-xx, -xx, xx, xx, -xx], [-yy, yy, yy, -yy, -yy]], float)
 
+if numelec < 0:
+    doped = 'p'
+elif numelec > 0:
+    doped = 'n'
+else:
+    doped = 'x'
+
 plt = brave.Plot()
 plt.data = [[gap, tau_epa, mu]]
 plt.kind = [['fill', 'plot', 'plot']]
@@ -65,11 +72,11 @@ plt.label = [['', mode[1], '']]
 plt.zorder = [[-3, -2, -1]]
 plt.xlim = [[-4.0, 4.0]]
 plt.ylim = [[0.0, 120.0]]
-plt.xdel = [[1.0, 0.5]]
-plt.ydel = [[20.0, 10.0]]
+plt.xdel = [[1.0, 1.0]]
+plt.ydel = [[20.0, 20.0]]
 plt.xlabel = ['Energy (eV)']
 plt.ylabel = ['Relaxation time (fs)']
-plt.note = [[[0.5, 1.02, 'center', 'bottom', title.format(name, int(round(numelec)), int(round(T_K))), 'black', 1.0]]]
+plt.note = [[[0.5, 1.02, 'center', 'bottom', title.format(name, doped, abs(numelec), int(round(T_K))), 'black', 1.0]]]
 
 plt.pagesize = [2.6, 2.7]
 plt.fontsize = 8.0
