@@ -1,0 +1,17 @@
+silicon phonons k=888000 q=888000
+&inputph
+   prefix = 'silicon'
+   outdir = '.'
+   reduce_io = .false.
+   tr2_ph = 1.0d-25
+   niter_ph = 500
+   alpha_mix(1) = 0.3d0
+   trans = .true.
+   fildyn = 'silicon.dyn.xml'
+   fildvscf = 'dvscf'
+   electron_phonon = ''
+   ldisp = .true.
+   nq1 = 8
+   nq2 = 8
+   nq3 = 8
+/
