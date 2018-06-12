@@ -1,0 +1,43 @@
+&CONTROL
+   prefix = 'HfCoSb'
+   calculation = 'scf'
+   verbosity = 'high'
+   wf_collect = .true.
+   tstress = .true.
+   tprnfor = .true.
+   outdir = '.'
+   wfcdir = '.'
+   pseudo_dir = '.'
+/
+&SYSTEM
+   ibrav = 2
+   a = 6.047079072
+   nat = 3
+   ntyp = 3
+   nbnd = 44
+   ecutwfc = 80.0
+   ecutrho = 700.0
+   occupations = 'smearing'
+   smearing = 'mp'
+   degauss = 0.01
+/
+&ELECTRONS
+   electron_maxstep = 200
+   conv_thr = 1.0d-10
+   mixing_mode = 'plain'
+   mixing_beta = 0.7
+   mixing_ndim = 8
+   diagonalization = 'david'
+   diago_david_ndim = 4
+   diago_full_acc = .true.
+/
+ATOMIC_SPECIES
+  Hf 178.490  Hf.pbe-spn-rrkjus_psl.1.0.0.UPF
+  Co  58.933  Co.pbe-spn-rrkjus_psl.1.0.0.UPF
+  Sb 121.760  Sb.pbe-dn-rrkjus_psl.1.0.0.UPF
+ATOMIC_POSITIONS crystal
+  Hf   0.500000000   0.500000000   0.500000000
+  Co   0.250000000   0.250000000   0.250000000
+  Sb   0.000000000   0.000000000   0.000000000
+K_POINTS automatic
+8 8 8 0 0 0
