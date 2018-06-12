@@ -1,0 +1,319 @@
+diff -ur boltztrap-1.2.5_original/src/BoltzTraP.F90 boltztrap-1.2.5/src/BoltzTraP.F90
+--- boltztrap-1.2.5_original/src/BoltzTraP.F90	2018-06-11 14:18:16.426705000 -0700
++++ boltztrap-1.2.5/src/BoltzTraP.F90	2018-06-12 10:06:53.060738000 -0700
+@@ -75,6 +75,9 @@
+   integer :: un_phdosxy  = 53
+   integer :: un_phdosxyz = 54
+ 
++  integer :: un_epa = 88
++  integer :: un_ke0j = 89
++
+ 
+   WRITE(6,*) '================ BoltzTraP vs 1.2.5 ============='
+   CALL gtfnam(deffn,errfn,iproc)
+@@ -116,6 +119,7 @@
+     OPEN (un_phdosxy,FILE=trim(FNAME)//'.phspeed', STATUS='unknown', FORM='formatted')
+     OPEN (un_phdosxyz,FILE=trim(FNAME)//'.phmass', STATUS='unknown', FORM='formatted')
+     OPEN (un_dosphdrag,FILE=trim(FNAME)//'.phdrag', STATUS='unknown', FORM='formatted')
++    OPEN (un_ke0j,FILE=trim(FNAME)//'.ke0j', STATUS='unknown', FORM='formatted')
+   end if
+   IF (iunit==un_ene) enefnup=fname
+   IF (iunit==un_tau) tauinput=.TRUE.
+@@ -334,7 +338,7 @@
+   ELSE IF(modus2=='BOLTZ' .or. modus2=='DRAG') THEN
+      ! dos and fermiint communicate via file units un_dos, un_dosxy, un_dosxyz = 49-51.
+      write (6,*) 'Calling FermiIntegrals'
+-     CALL fermiintegrals(cell, spinorbit,bs%icut1,vbm,cbm, fradix, un_dos, un_dosxy, un_dosxyz)
++     CALL fermiintegrals(cell, spinorbit,bs%icut1,vbm,cbm, fradix, un_dos, un_dosxy, un_dosxyz, un_epa, un_ke0j)
+   ELSE IF(modus2=='PHBLZ') then
+      write (6,*) 'Calling BoseIntegrals for thermal transport'
+      call boseintegrals(cell, fradix, un_phdos, un_phdosxy, un_phdosxyz)
+diff -ur boltztrap-1.2.5_original/src/fermiintegrals.F90 boltztrap-1.2.5/src/fermiintegrals.F90
+--- boltztrap-1.2.5_original/src/fermiintegrals.F90	2018-06-11 14:18:16.422374000 -0700
++++ boltztrap-1.2.5/src/fermiintegrals.F90	2018-06-12 10:37:21.827121000 -0700
+@@ -1,4 +1,4 @@
+-SUBROUTINE fermiintegrals(cell, spinorbit,icut1,vbm,cbm, fradix, un, unxy, unxyz)
++SUBROUTINE fermiintegrals(cell, spinorbit,icut1,vbm,cbm, fradix, un, unxy, unxyz, unepa, unke0j)
+   USE constants
+   USE input
+   USE bandstructure
+@@ -7,7 +7,7 @@
+   IMPLICIT NONE
+   type(cell_type), intent(in) :: cell
+   INTEGER, INTENT(IN)    :: icut1
+-  INTEGER, INTENT(IN)    :: un, unxy, unxyz
++  INTEGER, INTENT(IN)    :: un, unxy, unxyz, unepa, unke0j
+   REAL(8), INTENT(IN)    :: spinorbit
+   REAL(8), INTENT(INOUT) :: vbm,cbm
+   character(80), intent(in) :: fradix
+@@ -30,6 +30,11 @@
+   integer :: un_tr, un_ct, un_ht, un_trfix, un_ctfix, un_htfix
+   CHARACTER(len=20)      :: dummystring
+ 
++  INTEGER                :: ii, jj, kk, ll, mm, nn, oo, nwin, nmodes, nemax, iepa, ike0j
++  INTEGER, ALLOCATABLE   :: ne(:)
++  REAL(8), ALLOCATABLE   :: ee(:), de(:), wavg(:), gavg(:,:,:,:)
++  LOGICAL :: kappaelzeroj
++
+   type(fermispl_type) :: splobj
+   integer :: nspl
+ 
+@@ -88,6 +93,43 @@
+ &        "                                    kappa0(x,x')"
+   WRITE(un_ht,'(a)') "#       Ef[Ry] T [K]            N         27 Hall coefficients"
+ 
++!
++!-epa-1-begin
++!
++  READ(unepa, *, iostat = iepa) nwin, nmodes
++  IF (iepa == 0) THEN
++    ALLOCATE(ee(nwin))
++    ALLOCATE(de(nwin))
++    ALLOCATE(ne(nwin))
++    do ii = 1, nwin
++      READ(unepa, *) ee(ii), de(ii), ne(ii) ! ee & de in eV
++    enddo
++    ALLOCATE(wavg(nmodes))
++    READ(unepa, *) (wavg(ll), ll = 1, nmodes) ! <w> in cm^-1
++    nemax = maxval(ne)
++    ALLOCATE(gavg(nmodes, nemax, nemax, nwin))
++    do ii = 1, nwin
++      do jj = 1, ne(ii)
++        do kk = 1, ne(ii)
++          READ(unepa, *) mm, nn, oo, (gavg(ll, kk, jj, ii), ll = 1, nmodes) ! <|g|^2> in eV^2
++        enddo
++      enddo
++    enddo
++
++    ! convert ee & de from eV to Ha
++    ee(:) = ee(:) * EV
++    de(:) = de(:) * EV
++    ! convert <w> from cm^-1 to Ha
++    wavg(:) = wavg(:) * (2.0d0 * PI * Hbar_SI * JOULE) * (1.0d2 * Clight_SI)
++    ! convert <|g|^2> from eV^2 to Ha^2
++    gavg(:,:,:,:) = gavg(:,:,:,:) * EV**2
++  ENDIF
++
++  READ(unke0j, *, iostat = ike0j) kappaelzeroj
++!
++!-epa-1-end
++!
++
+ ! set up fermi spline object
+ !  argmin = (ebmin-ebmax)/deltat ! force set to -40
+ !  argmax = (ebmax-ebmin)/deltat ! force set to +40
+@@ -118,7 +160,8 @@
+      DO it=1,itmax
+         temp=it*deltat
+         call fermiint_fix_ef_T(cell%volume, efermi, deltaef, ebmin, temp, &
+-             un_tr, un_ct, un_ht, npoints, dos1, dos_sigxy, dos_sigxyz, spinorbit, icut1, 1, splobj)
++             un_tr, un_ct, un_ht, npoints, dos1, dos_sigxy, dos_sigxyz, spinorbit, icut1, 1, splobj, &
++             iepa, nwin, nmodes, nemax, ee, de, ne, wavg, gavg, kappaelzeroj)
+      ENDDO
+   ENDDO
+ 
+@@ -183,7 +226,8 @@
+       end if
+ 
+       call fermiint_fix_ef_T(cell%volume, efermi, deltaef, ebmin,  temp, &
+-           un_trfix, un_ctfix, un_htfix, npoints, dos1, dos_sigxy, dos_sigxyz, spinorbit, icut1, 0, splobj)
++           un_trfix, un_ctfix, un_htfix, npoints, dos1, dos_sigxy, dos_sigxyz, spinorbit, icut1, 0, splobj, &
++           iepa, nwin, nmodes, nemax, ee, de, ne, wavg, gavg, kappaelzeroj)
+     end do
+     WRITE (un_trfix,*)
+     WRITE (un_ctfix,*)
+@@ -203,6 +247,14 @@
+   close (un_ctfix)
+   close (un_htfix)
+ 
++  IF (iepa == 0) THEN
++    DEALLOCATE(ee)
++    DEALLOCATE(de)
++    DEALLOCATE(ne)
++    DEALLOCATE(wavg)
++    DEALLOCATE(gavg)
++  ENDIF
++
+ END SUBROUTINE fermiintegrals
+ 
+ 
+@@ -214,7 +266,7 @@
+ !----------------------------------------------------------------------------
+ subroutine fermiint_fix_ef_T(volume, efermi, deltaef, ebmin, temp, &
+     unit_tr, unit_cond, unit_hall, npoints, dos1, dos_sigxy, dos_sigxyz, spinorbit, icut1, prtef, &
+-    splobj)
++    splobj, iepa, nwin, nmodes, nemax, ee, de, ne, wavg, gavg, kappaelzeroj)
+ 
+  USE constants
+  USE input
+@@ -234,6 +286,10 @@
+ 
+  type(fermispl_type), intent(in) :: splobj
+ 
++ integer, intent(in) :: iepa, nwin, nmodes, nemax, ne(nwin)
++ real(8), intent(in) :: ee(nwin), de(nwin), wavg(nmodes), gavg(nmodes, nemax, nemax, nwin)
++ logical, intent(in) :: kappaelzeroj
++
+ ! local vars
+  INTEGER                :: ialp,ibet
+  INTEGER                :: i,j,k
+@@ -249,9 +305,15 @@
+  REAL(8)                :: cond(3,3),nu(3,3),kappa(3,3),sigxyz(3,3,3)
+  REAL(8)                :: minv_sigxy(3,3),seebeck(3,3),thermal(3,3),hall(3,3,3)
+ 
++ INTEGER                :: ii, jj, kk, ll, mm
++ REAL(8)                :: invtau, kt, nn, fa, fe, dosa, dose, xx, gk(2)
++ REAL(8), ALLOCATABLE   :: gj(:)
++
+ ! functions
+  REAL(8)                :: fermi,dfermide,dfermidt
+ 
++ ALLOCATE(gj(nemax))
++
+ !source
+  specheat=ZERO
+  sumelec=ZERO
+@@ -287,6 +349,67 @@
+         &           * taureffact)) )
+     end if
+ 
++!
++!-epa-2-begin
++!
++    if (iepa == 0) then
++      kt = temp * BOLTZMANN ! convert T from K to Ha
++      invtau = 0.0d0
++      xx = wavg(nmodes) / deltaef
++      ialp = int(xx) + 1
++
++      if (i .GE. ialp .AND. i .LE. npoints - ialp) then
++        do ll = 1, nmodes
++          nn = 1.0d0 / (exp(wavg(ll) / kt) - 1.0d0)
++          fa = 1.0d0 / (exp((ene + wavg(ll) - efermi) / kt) + 1.0d0)
++          fe = 1.0d0 / (exp((ene - wavg(ll) - efermi) / kt) + 1.0d0)
++
++          xx = wavg(ll) / deltaef
++          ibet = int(xx)
++          xx = xx - dble(ibet)
++          ! interpolate and convert DOS from state/spin/Ha/bohr^3 to state/spin/Ha/unitcell
++          dosa = volume * (dos1(i + ibet) * (1.0d0 - xx) + dos1(i + ibet + 1) * xx)
++          dose = volume * (dos1(i - ibet - 1) * xx + dos1(i - ibet) * (1.0d0 - xx))
++
++          if (ene .LT. sum(ee) / nwin) then
++            ii = 1
++          else
++            ii = 2
++          endif
++          if (ne(ii) .eq. 1) then
++            gk(:) = gavg(ll, 1, 1, ii)
++          else
++            xx = (ene - ee(ii)) / de(ii)
++            xx = max(xx, 1.0d-12)
++            xx = min(xx, ne(ii) - 1.0d-12)
++            jj = int(xx) + 1
++            do kk = 1, nemax
++              gj(kk) = gavg(ll, kk, jj, ii)
++            enddo
++            do mm = 1, 2
++              xx = (ene + wavg(ll) * (3 - 2 * mm) - ee(ii)) / de(ii)
++              xx = max(xx, 1.0d-12)
++              xx = min(xx, ne(ii) - 1.0d-12)
++              kk = int(xx) + 1
++              gk(mm) = gj(kk)
++            enddo
++          endif
++
++          invtau = invtau + gk(1) * (nn + fa) * dosa + gk(2) * (nn + 1.0d0 - fe) * dose
++        enddo
++        invtau = invtau * (2.0d0 * PI) / (Hbar_SI * JOULE)
++      endif
++
++      if (invtau .GT. 1.0d0) then
++        lifetime = 1.0d0 / invtau
++      else
++        lifetime = 0.0d0
++      endif
++    endif
++!
++!-epa-2-end
++!
++
+     factor1=fermi(ene,efermi,temp)*spinorbit
+     factor2=dfermide(ene,efermi,temp)*spinorbit
+     factor3=dfermidt(ene,efermi,temp)*spinorbit
+@@ -326,6 +449,28 @@
+        ENDDO
+     ENDDO
+     thermal(1:3,1:3)=kappa(1:3,1:3)
++
++!
++!-epa-3-begin
++!
++! use this for anisotropic systems
++! for isotropic systems you can use ( kappael = kappa0 - sigma S^2 T ) instead
++!
++    IF (kappaelzeroj) THEN
++       DO i=1,3
++          DO j=1,3
++             DO ialp=1,3
++                DO ibet=1,3
++                   thermal(i,j)=thermal(i,j)-temp*nu(i,ialp)*minv_sigxy(ibet,ialp)*nu(ibet,j)
++                ENDDO
++             ENDDO
++          ENDDO
++       ENDDO
++    ENDIF
++!
++!-epa-3-end
++!
++
+     hall(1:3,1:3,1:3)=ZERO
+     DO i=1,3
+        DO j=1,3
+@@ -360,6 +505,8 @@
+    WRITE(unit_hall,102) temp,sumelec,hall(1:3,1:3,1:3),efermi/RYDBERG ! **** c11,15,25 are yzx,zxy,xyz respectively ***
+  end if
+ 
++ DEALLOCATE(gj)
++
+ !100  FORMAT(F10.5,F10.4,F16.8,F16.8,9E16.8)
+  101  FORMAT(F10.5,F10.4,F16.8,27E16.8)
+ ! same without the Fermi energy
+diff -ur boltztrap-1.2.5_original/src/m_interfaces.F90 boltztrap-1.2.5/src/m_interfaces.F90
+--- boltztrap-1.2.5_original/src/m_interfaces.F90	2018-06-11 14:18:16.417866000 -0700
++++ boltztrap-1.2.5/src/m_interfaces.F90	2018-06-12 10:17:28.855463000 -0700
+@@ -119,13 +119,13 @@
+ end interface
+ 
+ interface
+-SUBROUTINE fermiintegrals(cell, spinorbit,icut1,vbm,cbm,fradix,un, unxy, unxyz)
++SUBROUTINE fermiintegrals(cell, spinorbit,icut1,vbm,cbm,fradix,un, unxy, unxyz, unepa, unke0j)
+   USE constants
+   USE input
+   USE bandstructure
+   IMPLICIT NONE
+   type(cell_type), intent(in) :: cell
+-  INTEGER, INTENT(IN)    :: un, unxy, unxyz
++  INTEGER, INTENT(IN)    :: un, unxy, unxyz, unepa, unke0j
+   INTEGER, INTENT(IN)    :: icut1
+   REAL(8), INTENT(IN)    :: spinorbit
+   REAL(8), INTENT(INOUT) :: vbm,cbm
+@@ -137,7 +137,7 @@
+ interface
+ subroutine fermiint_fix_ef_T(volume, efermi, deltaef, ebmin, temp, &
+     unit_tr, unit_cond, unit_hall, npoints, dos1, dos_sigxy, dos_sigxyz, spinorbit, icut1, prtef, &
+-    splobj)
++    splobj, iepa, nwin, nmodes, nemax, ee, de, ne, wavg, gavg, kappaelzeroj)
+  USE constants
+  USE input
+  USE bandstructure
+@@ -153,6 +153,9 @@
+  real(8), intent(in) :: dos_sigxy(3,3,0:npoints)
+  real(8), intent(in) :: dos_sigxyz(3,3,3,0:npoints)
+  type(fermispl_type),intent(in) :: splobj
++ integer, intent(in) :: iepa, nwin, nmodes, nemax, ne(nwin)
++ real(8), intent(in) :: ee(nwin), de(nwin), wavg(nmodes), gavg(nmodes, nemax, nemax, nwin)
++ logical, intent(in) :: kappaelzeroj
+ 
+ end subroutine fermiint_fix_ef_T
+ end interface
