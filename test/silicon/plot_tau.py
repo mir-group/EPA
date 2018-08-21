@@ -1,4 +1,4 @@
-import numpy
+import numpy as np
 import brave
 
 name = 'silicon'
@@ -35,10 +35,10 @@ epa.read('pw-out', f2)
 epa.read('boltztrap-dos', f3)
 epa.read('epa-out', f4)
 
-tau_epa = numpy.empty((2, trn.nmu), float)
-en = numpy.empty(trn.nmu, float)
-mu = numpy.empty(trn.nmu, float)
-temp = numpy.empty(trn.nmu, float)
+tau_epa = np.empty((2, trn.nmu), float)
+en = np.empty(trn.nmu, float)
+mu = np.empty(trn.nmu, float)
+temp = np.empty(trn.nmu, float)
 temp[:] = T_K
 mu[:] = trn.convert_argument('mu', [T_K, numelec])
 en[:] = trn.mu[:]
@@ -47,14 +47,14 @@ epa.mu = mu
 epa.temp = temp
 epa.calc_invtau()
 tau_epa[0, :] = epa.energy
-tau_epa[1, :] = numpy.divide(1.0, numpy.maximum(epa.invtau * 1.0e-15, 1.0e-6))
+tau_epa[1, :] = np.divide(1.0, np.maximum(epa.invtau * 1.0e-15, 1.0e-6))
 
 _mu = trn.convert_argument('mu', [T_K, numelec])
-mu = numpy.array([[_mu, _mu], [0.0, 120.0]], float)
+mu = np.array([[_mu, _mu], [0.0, 120.0]], float)
 
 xx = bandgap / 2
 yy = 1.0e3
-gap = numpy.array([[-xx, -xx, xx, xx, -xx], [-yy, yy, yy, -yy, -yy]], float)
+gap = np.array([[-xx, -xx, xx, xx, -xx], [-yy, yy, yy, -yy, -yy]], float)
 
 if numelec < 0:
     doped = 'p'

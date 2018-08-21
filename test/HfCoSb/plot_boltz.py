@@ -1,4 +1,4 @@
-import numpy
+import numpy as np
 import brave
 
 name = 'HfCoSb'
@@ -48,7 +48,7 @@ style = []
 color = []
 label = []
 for jj in range(len(prop)):
-    curve = numpy.empty((2, trn.ntemp), float)
+    curve = np.empty((2, trn.ntemp), float)
     curve[0][:] = trn.temp - T_C2K
     curve[1][:] = trn.interpolate_binary(prop[jj], 'numelec', numelec) * scale[jj]
     data.append([curve])
