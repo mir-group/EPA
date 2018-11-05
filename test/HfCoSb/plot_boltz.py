@@ -49,8 +49,8 @@ color = []
 label = []
 for jj in range(len(prop)):
     curve = np.empty((2, trn.ntemp), float)
-    curve[0][:] = trn.temp - T_C2K
-    curve[1][:] = trn.interpolate_binary(prop[jj], 'numelec', numelec) * scale[jj]
+    curve[0, :] = trn.temp - T_C2K
+    curve[1, :] = trn.interpolate_binary(prop[jj], 'numelec', numelec) * scale[jj]
     data.append([curve])
     kind.append([_kind])
     style.append([_style])
