@@ -1,0 +1,180 @@
+diff -ur BoltzTraP2-18.5.1_original/BoltzTraP2/bandlib.py BoltzTraP2-18.5.1/BoltzTraP2/bandlib.py
+--- BoltzTraP2-18.5.1_original/BoltzTraP2/bandlib.py	2018-06-18 13:57:11.099952000 -0700
++++ BoltzTraP2-18.5.1/BoltzTraP2/bandlib.py	2018-06-19 09:19:43.994369000 -0700
+@@ -366,7 +366,15 @@
+     return BOLTZMANN_SI * nruter
+ 
+ 
+-def fermiintegrals(epsilon, dos, sigma, mur, Tr, dosweight=2., cdos=None):
++def fermiintegrals(epsilon,
++                   dos,
++                   sigma,
++                   mur,
++                   Tr,
++                   dosweight=2.,
++                   cdos=None,
++                   scattering_model=None,
++                   scattering_file=None):
+     """Compute the moments of the FD distribution over the band structure.
+ 
+     Args:
+@@ -377,6 +385,12 @@
+         Tr: array of temperature values
+         dosweight: maximum occupancy of an electron mode
+         cdos: "curvature DOS" if available
++        scattering_model: model to be used for the electron lifetimes. This is
++            identical to scattering_model in BTPDOS except that here the model
++            can be mu- and T-dependent. The following choices are available:
++                - "epa": EPA (electron-phonon-averaged) approximation
++        scattering_file: name of file containing parameters of the scattering
++            model
+ 
+     Returns:
+         Five numpy arrays, namely:
+@@ -393,6 +407,8 @@
+            taking the occupancies into account.
+         where nT and nmu are the sizes of Tr and mur, respectively.
+     """
++    if isinstance(scattering_model, str) and scattering_model == "epa":
++        epa_params = epa_init(scattering_file)
+     kBTr = np.array(Tr) * BOLTZMANN
+     iu0 = np.triu_indices(3)
+     ido = np.tril_indices(3, -1)
+@@ -410,16 +426,27 @@
+     de = epsilon[1] - epsilon[0]
+     for iT, kBT in enumerate(kBTr):
+         for imu, mu in enumerate(mur):
++            if isinstance(scattering_model, str) and scattering_model == "epa":
++                tau = epa_calc(
++                    mu, kBT, epsilon, epsilon, dos, epa_params)
++                sigma_scat = sigma * tau
++                if cdos is not None:
++                    cdos_scat = cdos * tau ** 2
++                else:
++                    cdos_scat = cdos
++            else:
++                sigma_scat = sigma
++                cdos_scat = cdos
+             N[iT, imu] = -(dosweight * dos * FD(epsilon, mu, kBT)).sum() * de
+             int0 = -dosweight * dFDde(epsilon, mu, kBT)
+-            intn = int0 * sigma
++            intn = int0 * sigma_scat
+             L0[iT, imu] = intn.sum(axis=2) * de
+             intn *= epsilon - mu
+             L1[iT, imu] = -intn.sum(axis=2) * de
+             intn *= epsilon - mu
+             L2[iT, imu] = intn.sum(axis=2) * de
+-            if cdos is not None:
+-                cint = int0 * cdos
++            if cdos_scat is not None:
++                cint = int0 * cdos_scat
+                 L11[iT, imu] = -cint.sum(axis=3) * de
+     return N, L0, L1, L2, L11
+ 
+@@ -486,3 +513,106 @@
+                     Hall_[:, :, k] = pL11 @ L111[iT, imu, :, :, k] @ pL11
+                 Hall[iT, imu] = Hall_
+     return (L11, seebeck, kappa, Hall)
++
++def epa_init(epa_file=None):
++    """Read parameters of the EPA approximation from a file.
++
++    EPA (electron-phonon-averaged) approximation
++    Adv. Energy Mater. 2018, 1800246
++    doi:10.1002/aenm.201800246
++    https://doi.org/10.1002/aenm.201800246
++
++    Args:
++        epa_file: name of file containing the EPA parameters.
++
++    Returns:
++        epa_params: list of EPA parameters.
++    """
++    with open(epa_file, 'rb') as ff:
++        tt = ff.readline().split()
++        nwin = int(tt[0])
++        nmode = int(tt[1])
++
++        ee = np.empty(nwin, float)
++        de = np.empty(nwin, float)
++        ne = np.empty(nwin, int)
++        for ii in range(nwin):
++            tt = ff.readline().split()
++            ee[ii] = float(tt[0])
++            de[ii] = float(tt[1])
++            ne[ii] = int(tt[2])
++
++        wavg = np.fromfile(ff, dtype = float, count = nmode, sep = ' ')
++        nemax = np.amax(ne)
++        gavg = np.loadtxt(ff, dtype = float, usecols = (ii for ii in range(
++            3, 3 + nmode))).reshape(nwin, nemax, nemax, nmode)
++
++        wavg *= 100 * 2 * math.pi * hbar_SI / qe_SI * Clight_SI
++        ee, de, wavg, gavg = (xx * eV for xx in (ee, de, wavg, gavg))
++        epa_params = [nwin, nmode, nemax, ee, de, ne, wavg, gavg]
++        return epa_params
++
++def epa_calc(mu, kBT, en, epsilon, dos, epa_params):
++    """Compute the electron relaxation time within the EPA approximation.
++
++    EPA (electron-phonon-averaged) approximation
++    Adv. Energy Mater. 2018, 1800246
++    doi:10.1002/aenm.201800246
++    https://doi.org/10.1002/aenm.201800246
++
++    Args:
++        mu: chemical potential.
++        kBT: temperature.
++        en: array of energies at which to compute tau.
++        epsilon: array of energies at which the DOS is available.
++        dos: density of states.
++        epa_params: list of EPA parameters returned by epa_init.
++
++    Returns:
++        tau: electron relaxation time, in seconds, same shape as en.
++    """
++    nwin, nmode, nemax, ee, de, ne, wavg, gavg = epa_params
++
++    EPS12 = 1e-12
++    nepa = en.shape[0]
++    ww = wavg
++
++    gj = np.empty(nemax, float)
++    gk = np.empty(2, float)
++    invtau = np.empty(nepa, float)
++
++    for nn in range(nepa):
++        dummy = 0.0
++        for ll in range(nmode):
++            nw = 1 / (np.exp(ww[ll] / kBT) - 1)
++            fa = 1 / (np.exp((en[nn] + ww[ll] - mu) / kBT) + 1)
++            fe = 1 / (np.exp((en[nn] - ww[ll] - mu) / kBT) + 1)
++            dosa = np.interp(en[nn] + ww[ll], epsilon, dos)
++            dose = np.interp(en[nn] - ww[ll], epsilon, dos)
++
++            if (en[nn] < np.sum(ee) / nwin):
++                ii = 0
++            else:
++                ii = 1
++            if (ne[ii] == 1):
++                gk[:] = gavg[ii, 0, 0, ll]
++            else:
++                xx = (en[nn] - ee[ii]) / de[ii]
++                xx = max(xx, EPS12)
++                xx = min(xx, ne[ii] - EPS12)
++                jj = int(xx)
++                for kk in range(nemax):
++                    gj[kk] = gavg[ii, jj, kk, ll]
++                for mm in range(2):
++                    xx = (en[nn] + ww[ll] * (1 - 2 * mm) - ee[ii]) / de[ii]
++                    xx = max(xx, EPS12)
++                    xx = min(xx, ne[ii] - EPS12)
++                    kk = int(xx)
++                    gk[mm] = gj[kk]
++
++            dummy += gk[0] * (nw + fa) * dosa + gk[1] * (nw + 1 - fe) * dose
++        invtau[nn] = dummy
++
++    invtau *= 2 * math.pi * qe_SI / hbar_SI
++    tau = np.divide(1.0, np.maximum(invtau, 1e9))
++    return tau
