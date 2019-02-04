@@ -1,14 +1,14 @@
 # Electron-Phonon Averaged (EPA) Approximation
 
-There are two examples, silicon and half-Heusler HfCoSb, containing all the input and output files (output files are gzipped). I would suggest starting with silicon because HfCoSb is computationally much more expensive. Take a look at the job submission scripts, **submit1.sh** and **submit2.sh**, to see the computational workflow. There are several python scripts called from **submit2.sh**, they require another (private) package to convert QE output to Boltztrap input. You can instead use the converter included in Boltztrap-1.2.5, called **qe2boltz.py**.
+There are two examples, silicon and half-Heusler HfCoSb, containing all the input and output files (output files are gzipped). I would suggest starting with silicon because HfCoSb is computationally much more expensive. Take a look at the job submission scripts, **submit1.sh** and **submit2.sh**, to see the computational workflow. There are several python scripts called from **submit2.sh**, they require another (private) package to convert QE output to BoltzTraP input. You can instead use the converter included in boltztrap-1.2.5, called **qe2boltz.py**.
 
 The computational workflow is as follows:
 - Run **ph.x** with `fildvscf = 'dvscf'` to compute derivatives of scf potential
 - Run **ph.x** with `electron_phonon = 'epa'` to compute el-ph matrix elements and write them to file 'silicon.epa.k'
 - Run **epa.x** to read the matrix elements from file 'silicon.epa.k', average them over wavevector directions, and write them to file 'silicon.epa.e'
-- Run BoltzTraP to read the averaged matrix elements from file 'silicon.epa.e' and compute the transport properties
+- Run **BoltzTraP** to read the averaged matrix elements from file 'silicon.epa.e' and compute the transport properties
 
-The important file is 'silicon.epa.in' which contains parameters for program **epa.x**. It has the following content:
+The important file is 'silicon.epa.in' which contains parameters for **epa.x**. It has the following content:
 
 | Content                | Description                                                                                                                                          |
 |------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -18,8 +18,6 @@ The important file is 'silicon.epa.in' which contains parameters for program **e
 | `6.146000 -0.4 10 0 0` | VBM energy in eV, energy grid step in eV (negative because valence bands are below VBM), number of bins in valence energy grid, last two must be 0's |
 | `6.602500 0.4 10 0 0`  | CBM energy in eV, energy grid step in eV, number of bins in conduction energy grid, last two must be 0's                                             |
 | `0.0 0 0`              | for plotting matrix elements vs energy (like in Supplementary Figure 1 of the EPA paper), only used if job type is 'gdist'                           |
-
-The patched Boltztrap will automatically switch to the EPA mode if it finds file 'silicon.epa.e' (as defined in Boltztrap input file 'silicon.def'). If 'silicon.epa.e' is not present, the patched Boltztrap will fall back to the CRT (constant relaxation time) mode.
 
 The energy grids for both valence and conduction bands span 4 eV below the VBM and 4 eV above the CBM (0.4 eV step times 10 energy bins gives 4 eV range). This could be the same or different for valence and conduction bands.
 
@@ -31,3 +29,11 @@ If you have a metal you can try to define a single energy grid that spans both v
 |------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `-5.0 -10.0 1 0 0`     | valence energy grid is far below the Fermi level and is not functional                                                                               |
 | `2.0 0.5 12 0 0`       | conduction energy grid spans the range from 2 eV to 8 eV, that is, 3 eV below and 3 eV above the Fermi level                                         |
+
+Add the following line to BoltzTraP input file 'silicon.def' to switch BoltzTraP to the EPA mode:
+```
+88, 'silicon.epa.e', 'old', 'formatted', 0
+```
+If BoltzTraP is unable to open file 'silicon.epa.e' or read its content, it will automatically fall back to the CRT (constant relaxation time) mode.
+
+Create file 'silicon.ke0j' with content '.TRUE.' to make BoltzTraP compute the electronic part of the thermal conductivity at zero electric current.
