@@ -2,22 +2,25 @@
 
 There are two examples, silicon and half-Heusler HfCoSb, containing all the input and output files (output files are gzipped). I would suggest starting with silicon because HfCoSb is computationally much more expensive. Take a look at the job submission scripts, **submit1.sh** and **submit2.sh**, to see the computational workflow. There are several python scripts called from **submit2.sh**, they require another (private) package to convert QE output to BoltzTraP input. You can instead use the converter included in boltztrap-1.2.5, called **qe2boltz.py**.
 
-The computational workflow is as follows:
-- Run **ph.x** with `fildvscf = 'dvscf'` to compute derivatives of scf potential
-- Run **ph.x** with `electron_phonon = 'epa'` to compute el-ph matrix elements and write them to file 'silicon.epa.k'
-- Run **epa.x** to read the matrix elements from file 'silicon.epa.k', average them over wavevector directions, and write them to file 'silicon.epa.e'
-- Run **BoltzTraP** to read the averaged matrix elements from file 'silicon.epa.e' and compute the transport properties
+The computational workflow:
+1.  Run **pw.x** to obtain the SCF solution
+2.  Run **ph.x** with `fildvscf = 'dvscf'` to compute derivatives of the SCF potential
+3.  Run **ph.x** with `electron_phonon = 'epa'` to compute the electron-phonon matrix elements and write them to file 'silicon.epa.k'
+4.  Run **epa.x** to read the electron-phonon matrix elements from file 'silicon.epa.k', average them over wavevector directions, and write them to file 'silicon.epa.e'
+5.  Run **BoltzTraP** to read the averaged electron-phonon matrix elements from file 'silicon.epa.e' and compute the transport properties
 
-The important file is 'silicon.epa.in' which contains parameters for **epa.x**. It has the following content:
+## Step 4
+
+Format of the input file 'silicon.epa.in' for **epa.x**:
 
 | Content                | Description                                                                                                                                          |
 |------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `silicon.epa.k`        | input file for **epa.x** (contains el-ph matrix elements in momentum-space, produced by **ph.x**)                                                    |
-| `silicon.epa.e`        | output file of **epa.x** (contains el-ph matrix elements in energy-space, averaged over directions)                                                  |
+| `silicon.epa.k`        | input file for **epa.x** (contains electron-phonon matrix elements in momentum-space, produced by **ph.x**)                                          |
+| `silicon.epa.e`        | output file of **epa.x** (contains electron-phonon matrix elements in energy-space, averaged over directions)                                        |
 | `egrid`                | job type, 'egrid' stands for the standard EPA averaging scheme from momentum to energy space                                                         |
 | `6.146000 -0.4 10 0 0` | VBM energy in eV, energy grid step in eV (negative because valence bands are below VBM), number of bins in valence energy grid, last two must be 0's |
 | `6.602500 0.4 10 0 0`  | CBM energy in eV, energy grid step in eV, number of bins in conduction energy grid, last two must be 0's                                             |
-| `0.0 0 0`              | for plotting matrix elements vs energy (like in Supplementary Figure 1 of the EPA paper), only used if job type is 'gdist'                           |
+| `0.0 0 0`              | for plotting the electron-phonon matrix elements vs energy (like in Supplementary Figure 1 of the EPA paper), only used if job type is 'gdist'       |
 
 The energy grids for both valence and conduction bands span 4 eV below the VBM and 4 eV above the CBM (0.4 eV step times 10 energy bins gives 4 eV range). This could be the same or different for valence and conduction bands.
 
@@ -29,6 +32,8 @@ If you have a metal you can try to define a single energy grid that spans both v
 |------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `-5.0 -10.0 1 0 0`     | valence energy grid is far below the Fermi level and is not functional                                                                               |
 | `2.0 0.5 12 0 0`       | conduction energy grid spans the range from 2 eV to 8 eV, that is, 3 eV below and 3 eV above the Fermi level                                         |
+
+## Step 5
 
 Add the following line to BoltzTraP input file 'silicon.def' to switch BoltzTraP to the EPA mode:
 ```
