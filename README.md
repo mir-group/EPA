@@ -1,5 +1,7 @@
 # Electron-Phonon Averaged (EPA) Approximation
 
+The electron-phonon averaged (EPA) Approximation is described in [Adv. Energy Mater. 2018, 1800246](https://doi.org/10.1002/aenm.201800246) and [arXiv:1511.08115](https://arxiv.org/abs/1511.08115).
+
 There are two examples, silicon and half-Heusler HfCoSb, containing all the input and output files (output files are gzipped). I would suggest starting with silicon because HfCoSb is computationally much more expensive. Take a look at the job submission scripts, **submit1.sh** and **submit2.sh**, to see the computational workflow. There are several python scripts called from **submit2.sh**, they require another (private) package to convert QE output to BoltzTraP input. You can instead use the converter included in boltztrap-1.2.5, called **qe2boltz.py**.
 
 The computational workflow:
@@ -43,3 +45,7 @@ Add the following line to BoltzTraP input file 'silicon.def' to switch BoltzTraP
 If BoltzTraP is unable to open file 'silicon.epa.e' or read its content, it will automatically fall back to the CRT (constant relaxation time) mode.
 
 Create file 'silicon.ke0j' with content '.TRUE.' to make BoltzTraP compute the electronic part of the thermal conductivity at zero electric current.
+
+## License
+
+Quantum ESPRESSO, BoltzTraP, and BoltzTraP2 patches are distributed under GPL-2.0, LGPL-3.0+, and GPL-3.0+ licenses, respectively. For license information see "license.txt"
