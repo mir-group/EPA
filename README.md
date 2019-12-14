@@ -9,8 +9,9 @@ The computational workflow:
 1.  Run **pw.x** to obtain the SCF solution
 2.  Run **ph.x** with `fildvscf = 'dvscf'` to compute derivatives of the SCF potential
 3.  Run **ph.x** with `electron_phonon = 'epa'` to compute the electron-phonon matrix elements and write them to file 'silicon.epa.k'
-4.  Run **epa.x** to read the electron-phonon matrix elements from file 'silicon.epa.k', average them over wavevector directions, and write them to file 'silicon.epa.e'
-5.  Run **BoltzTraP** to read the averaged electron-phonon matrix elements from file 'silicon.epa.e' and compute the transport properties
+4.  Run **pw.x** with calculation = 'nscf' to obtain the eigenvalues on a fine k-grid
+5.  Run **epa.x** to read the electron-phonon matrix elements from file 'silicon.epa.k', average them over wavevector directions, and write them to file 'silicon.epa.e'
+6.  Run **BoltzTraP** to read the averaged electron-phonon matrix elements from file 'silicon.epa.e' and compute the transport properties
 
 ## Step 4
 
@@ -26,6 +27,8 @@ Format of the input file 'silicon.epa.in' for **epa.x**:
 | `0.0 0 0`              | for plotting the electron-phonon matrix elements vs energy (like in Supplementary Figure 1 of the EPA paper), only used if job type is 'gdist'       |
 
 The energy grids for both valence and conduction bands span 4 eV below the VBM and 4 eV above the CBM (0.4 eV step times 10 energy bins gives 4 eV range). This could be the same or different for valence and conduction bands.
+
+How to choose grid steps and numbers of bins for valence and conduction energy grids? Choose some initial values, then run epa.x, and examine the output. Look at the numbers in `countv` and `countc` columns. These are numbers of eigenvalues that fall in each energy bin. If there are any zeros or small numbers (say less than 10), you would have to increase grid steps or decrease numbers of bins or increase the number of k-points (the latter requires rerunning **pw.x** NSCF calculation).
 
 Transitions between the valence and conduction energy grids are not implemented, there are only valence-to-valence and conduction-to-conduction transitions. This won't work for metals.
 
