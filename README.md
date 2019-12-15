@@ -13,7 +13,7 @@ The computational workflow:
 5.  Run **epa.x** to read the electron-phonon matrix elements from file 'silicon.epa.k', average them over wavevector directions, and write them to file 'silicon.epa.e'
 6.  Run **BoltzTraP** to read the averaged electron-phonon matrix elements from file 'silicon.epa.e' and compute the transport properties
 
-## Step 4
+## Step 5
 
 Format of the input file 'silicon.epa.in' for **epa.x**:
 
@@ -39,7 +39,7 @@ If you have a metal you can try to define a single energy grid that spans both v
 | `-5.0 -10.0 1 0 0`     | valence energy grid is far below the Fermi level and is not functional                                                                               |
 | `2.0 0.5 12 0 0`       | conduction energy grid spans the range from 2 eV to 8 eV, that is, 3 eV below and 3 eV above the Fermi level                                         |
 
-## Step 5
+## Step 6
 
 Add the following line to BoltzTraP input file 'silicon.def' to switch BoltzTraP to the EPA mode:
 ```
