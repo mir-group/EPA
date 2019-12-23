@@ -17,27 +17,33 @@ The computational workflow:
 
 Format of the input file 'silicon.epa.in' for **epa.x**:
 
-| Content                | Description                                                                                                                                          |
-|------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `silicon.epa.k`        | input file for **epa.x** (contains electron-phonon matrix elements in momentum-space, produced by **ph.x**)                                          |
-| `silicon.epa.e`        | output file of **epa.x** (contains electron-phonon matrix elements in energy-space, averaged over directions)                                        |
-| `egrid`                | job type, 'egrid' stands for the standard EPA averaging scheme from momentum to energy space                                                         |
-| `6.146000 -0.4 10 0 0` | VBM energy in eV, energy grid step in eV (negative because valence bands are below VBM), number of bins in valence energy grid, last two must be 0's |
-| `6.602500 0.4 10 0 0`  | CBM energy in eV, energy grid step in eV, number of bins in conduction energy grid, last two must be 0's                                             |
-| `0.0 0 0`              | for plotting the electron-phonon matrix elements vs energy (like in Supplementary Figure 1 of the EPA paper), only used if job type is 'gdist'       |
+| Content                | Description                                                                                                                                    |
+|------------------------|------------------------------------------------------------------------------------------------------------------------------------------------|
+| `silicon.epa.k`        | input file for **epa.x** (contains electron-phonon matrix elements in momentum-space, produced by **ph.x**)                                    |
+| `silicon.epa.e`        | output file of **epa.x** (contains electron-phonon matrix elements in energy-space, averaged over directions)                                  |
+| `egrid`                | job type, 'egrid' stands for the standard EPA averaging scheme from momentum to energy space                                                   |
+| `6.146000 -0.4 10 0 0` | VBM energy in eV, grid step in eV (negative because downwards from the VBM), number of bins, the last two must be 0's                          |
+| `6.602500 0.4 10 0 0`  | CBM energy in eV, grid step in eV (positive because updards from the CBM), number of bins, the last two must be 0's                            |
+| `0.0 0 0`              | for plotting the electron-phonon matrix elements vs energy (like in Supplementary Figure 1 of the EPA paper), only used if job type is 'gdist' |
 
-The energy grids for both valence and conduction bands span 4 eV below the VBM and 4 eV above the CBM (0.4 eV step times 10 energy bins gives 4 eV range). This could be the same or different for valence and conduction bands.
+Both the valence and conduction energy grids consist of 10 bins of 0.4 eV width (these may be different for the two grids). The valence energy grid extends 4 eV below the VBM (valence band maximum) and the conduction energy grid extends 4 eV above the CBM (conduction band minimum).
 
-How to choose grid steps and numbers of bins for valence and conduction energy grids? Choose some initial values, then run epa.x, and examine the output. Look at the numbers in `countv` and `countc` columns. These are numbers of eigenvalues that fall in each energy bin. If there are any zeros or small numbers (say less than 10), you would have to increase grid steps or decrease numbers of bins or increase the number of k-points (the latter requires rerunning **pw.x** with `calculation = 'nscf'`).
+Transitions between the valence and conduction energy grids are not implemented, there are only valence-to-valence and conduction-to-conduction transitions. This is only valid if the band gap is larger than the highest phonon energy.
 
-Transitions between the valence and conduction energy grids are not implemented, there are only valence-to-valence and conduction-to-conduction transitions. This won't work for metals.
+If you have a metal or a narrow-gap semiconductor, you can define a single energy grid that spans both valence and conduction bands. For example, if the Fermi level is at 5 eV, you can define the energy grids as follows:
 
-If you have a metal you can try to define a single energy grid that spans both valence and conduction bands. I haven't tested it but I think it should work. For example, if the Fermi level is at +5 eV, you can define the grids in EPA input file as follows:
+| Content                | Description                                                                                                                                    |
+|------------------------|------------------------------------------------------------------------------------------------------------------------------------------------|
+| `-5.0 -10.0 1 0 0`     | valence energy grid is far below the Fermi level and is not functional                                                                         |
+| `2.0 0.5 12 0 0`       | conduction energy grid spans the range from 2 eV to 8 eV, that is, 3 eV below and 3 eV above the Fermi level                                   |
 
-| Content                | Description                                                                                                                                          |
-|------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `-5.0 -10.0 1 0 0`     | valence energy grid is far below the Fermi level and is not functional                                                                               |
-| `2.0 0.5 12 0 0`       | conduction energy grid spans the range from 2 eV to 8 eV, that is, 3 eV below and 3 eV above the Fermi level                                         |
+## How to select energy grids
+
+The extends of valence and conduction energy grids are defined by the range of Fermi levels for which you want to compute the transport properties. Let's say you want to span the Fermi level from 1 eV below the VBM to 0.5 eV above the CBM. Then your valence and conduction energy grids have to cover that range, plus the largest phonon energy (because the electron energy can change by as much as the largest phonon energy during electron-phonon scattering, so all electrons in that energy range will contribute to the transport properties). Extending the energy grids outside of that range won't have any effect on your transport properties (since it doesn't affect the electronic transitions in your range of Fermi energies). Let's say your largest phonon energy is 0.2 eV, then you need to span the range from 1.2 eV below the VBM to 0.7 eV above the CBM. If your grid steps are 0.1 eV, you need 12 bins in the valence energy grid and 7 bins in the conduction energy grid. If you increase grid steps to 0.2 eV, you can decrease numbers of bins to 6 and 4, respectively.
+
+Choose some initial values for grid steps and numbers of bins, then run epa.x, and examine the output. Look at the numbers in `countv` and `countc` columns. These are numbers of eigenvalues that fall in each energy bin. If there are any zeros in these columns, you have to increase grid steps or decrease numbers of bins or increase numbers of k-/q-points (the latter requires rerunning **pw.x** with `calculation = 'nscf'`).
+
+What should be reasonable values for `countv` and `countc`? This, of course, is entirely dependent on the material. As a rule of thumb, anything less than 3-5 is too small, something in 5-10 or 20-50 range is reasonable, and anything above 50-100 is too large. Note that since the electron energy dispersion is generally not homogeneous, you will always have some bins with small values (5-10 and below) and other bins with large values (100-200 and above) for the same grid step. You want to focus on those bins that have the smallest values of `countv` and `countc`, and make sure that it doesn't go below 3-5 as you decrease grid steps.
 
 ## Step 6
 
