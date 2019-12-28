@@ -7,7 +7,7 @@ silicon phonons k=888000 q=888000
    niter_ph = 500
    alpha_mix(1) = 0.3d0
    trans = .true.
-   fildyn = 'silicon.dyn.xml'
+   fildyn = 'silicon.dyn'
    fildvscf = 'dvscf'
    electron_phonon = ''
    ldisp = .true.

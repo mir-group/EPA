@@ -7,7 +7,7 @@ HfCoSb phonons k=888000 q=888000
    niter_ph = 500
    alpha_mix(1) = 0.3d0
    trans = .false.
-   fildyn = 'HfCoSb.dyn.xml'
+   fildyn = 'HfCoSb.dyn'
    fildvscf = 'dvscf'
    electron_phonon = 'epa'
    ldisp = .true.
