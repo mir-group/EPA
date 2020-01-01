@@ -1,5 +1,10 @@
 #!/bin/bash
 
+# epa.x dies with I/O errors when ph.x is run with buffered I/O
+unset FORT_BUFFERED
+unset FORT_BLOCKSIZE
+unset FORT_BUFFERCOUNT
+
 NPOOL=29
 export OMP_NUM_THREADS=1
 MPI="mpirun"
