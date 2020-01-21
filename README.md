@@ -57,4 +57,4 @@ Create file 'silicon.ke0j' with content '.TRUE.' to make BoltzTraP compute the e
 
 ## License
 
-Quantum ESPRESSO, BoltzTraP, and BoltzTraP2 patches are distributed under GPL-2.0, LGPL-3.0+, and GPL-3.0+ licenses, respectively. For license information see "license_qe.txt", "license_boltztrap.txt", and "license_boltztrap2.txt"
+EPA patches to Quantum ESPRESSO, BoltzTraP, and BoltzTraP2 are distributed under [GPL-2.0](https://github.com/QEF/q-e/blob/master/License), [LGPL-3.0+](http://www.gnu.org/licenses/lgpl-3.0.txt), and [GPL-3.0+](https://gitlab.com/sousaw/BoltzTraP2/blob/public/LICENSE.txt) licenses, respectively.
