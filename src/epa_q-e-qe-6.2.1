@@ -1,6 +1,6 @@
 diff -ur q-e-qe-6.2.1_original/PHonon/PH/check_initial_status.f90 q-e-qe-6.2.1/PHonon/PH/check_initial_status.f90
---- q-e-qe-6.2.1_original/PHonon/PH/check_initial_status.f90	2017-12-11 05:41:41.000000000 -0500
-+++ q-e-qe-6.2.1/PHonon/PH/check_initial_status.f90	2018-05-12 12:13:26.837814812 -0400
+--- q-e-qe-6.2.1_original/PHonon/PH/check_initial_status.f90	2020-01-25 09:37:54.895160256 -0800
++++ q-e-qe-6.2.1/PHonon/PH/check_initial_status.f90	2020-01-25 09:38:58.799093623 -0800
 @@ -72,7 +72,7 @@
    USE io_files,        ONLY : tmp_dir
    USE lsda_mod,        ONLY : nspin
@@ -22,8 +22,8 @@ diff -ur q-e-qe-6.2.1_original/PHonon/PH/check_initial_status.f90 q-e-qe-6.2.1/P
          !
       END IF
 diff -ur q-e-qe-6.2.1_original/PHonon/PH/do_phonon.f90 q-e-qe-6.2.1/PHonon/PH/do_phonon.f90
---- q-e-qe-6.2.1_original/PHonon/PH/do_phonon.f90	2017-12-11 05:41:41.000000000 -0500
-+++ q-e-qe-6.2.1/PHonon/PH/do_phonon.f90	2018-05-12 12:15:41.128926811 -0400
+--- q-e-qe-6.2.1_original/PHonon/PH/do_phonon.f90	2020-01-25 09:37:54.895160256 -0800
++++ q-e-qe-6.2.1/PHonon/PH/do_phonon.f90	2020-01-25 09:38:58.799093623 -0800
 @@ -33,7 +33,7 @@
    USE disp,            ONLY : nqs
    USE control_ph,      ONLY : epsil, trans, qplot, only_init, &
@@ -43,8 +43,8 @@ diff -ur q-e-qe-6.2.1_original/PHonon/PH/do_phonon.f90 q-e-qe-6.2.1/PHonon/PH/do
             CALL elph_yambo_eval_and_IO()
          ELSEIF(elph_tetra == 1) THEN
 diff -ur q-e-qe-6.2.1_original/PHonon/PH/elph.f90 q-e-qe-6.2.1/PHonon/PH/elph.f90
---- q-e-qe-6.2.1_original/PHonon/PH/elph.f90	2017-12-11 05:41:41.000000000 -0500
-+++ q-e-qe-6.2.1/PHonon/PH/elph.f90	2018-05-12 12:16:20.640672811 -0400
+--- q-e-qe-6.2.1_original/PHonon/PH/elph.f90	2020-01-25 09:37:54.899162255 -0800
++++ q-e-qe-6.2.1/PHonon/PH/elph.f90	2020-01-25 09:38:58.799093623 -0800
 @@ -12,7 +12,7 @@
    !
    SAVE
@@ -55,22 +55,18 @@ diff -ur q-e-qe-6.2.1_original/PHonon/PH/elph.f90 q-e-qe-6.2.1/PHonon/PH/elph.f9
    INTEGER :: el_ph_ngauss, el_ph_nsigma
    INTEGER :: iunwfcwann, lrwfcr
 diff -ur q-e-qe-6.2.1_original/PHonon/PH/elphon.f90 q-e-qe-6.2.1/PHonon/PH/elphon.f90
---- q-e-qe-6.2.1_original/PHonon/PH/elphon.f90	2017-12-11 02:41:41.000000000 -0800
-+++ q-e-qe-6.2.1/PHonon/PH/elphon.f90	2018-05-27 09:48:56.499801000 -0700
-@@ -1140,6 +1140,300 @@
+--- q-e-qe-6.2.1_original/PHonon/PH/elphon.f90	2020-01-25 09:37:54.899162255 -0800
++++ q-e-qe-6.2.1/PHonon/PH/elphon.f90	2020-01-25 09:44:46.240713248 -0800
+@@ -1140,6 +1140,296 @@
  END SUBROUTINE elphsum_simple
     
  !-----------------------------------------------------------------------
 +SUBROUTINE elphfil_epa(iq)
 +  !-----------------------------------------------------------------------
 +  !
-+  !      EPA (electron-phonon-averaged) approximation
 +  !      Writes electron-phonon matrix elements to a file
-+  !      Written by Georgy Samsonidze on 2015-01-28
-+  !
-+  !      Adv. Energy Mater. 2018, 1800246
-+  !      doi:10.1002/aenm.201800246
-+  !      https://doi.org/10.1002/aenm.201800246
++  !      which is subsequently processed by the epa code
++  !      Original routine written by Georgy Samsonidze
 +  !
 +  !-----------------------------------------------------------------------
 +  USE cell_base, ONLY : ibrav, alat, omega, tpiba, at, bg
@@ -359,23 +355,61 @@ diff -ur q-e-qe-6.2.1_original/PHonon/PH/elphon.f90 q-e-qe-6.2.1/PHonon/PH/elpho
    !-----------------------------------------------------------------------
    !
 diff -ur q-e-qe-6.2.1_original/PHonon/PH/epa.f90 q-e-qe-6.2.1/PHonon/PH/epa.f90
---- q-e-qe-6.2.1_original/PHonon/PH/epa.f90	2018-05-19 10:06:19.878499896 -0400
-+++ q-e-qe-6.2.1/PHonon/PH/epa.f90	2018-05-12 12:44:51.531690811 -0400
-@@ -0,0 +1,524 @@
-+!-----------------------------------------------------------------------
+--- q-e-qe-6.2.1_original/PHonon/PH/epa.f90	2020-01-25 09:44:25.686442092 -0800
++++ q-e-qe-6.2.1/PHonon/PH/epa.f90	2020-01-25 09:47:30.558824476 -0800
+@@ -0,0 +1,563 @@
 +!
-+!      EPA (electron-phonon-averaged) approximation
-+!      Averages electron-phonon matrix elements over k and q wavevectors
-+!          in the bins of incident and scattered electron energy grids
-+!      Written by Georgy Samsonidze from 2015-01-28 to 2015-05-11
++! Copyright (C) 2018 Quantum ESPRESSO group
++! This file is distributed under the terms of the
++! GNU General Public License. See the file `License'
++! in the root directory of the present distribution,
++! or http://www.gnu.org/copyleft/gpl.txt .
 +!
-+!      Adv. Energy Mater. 2018, 1800246
-+!      doi:10.1002/aenm.201800246
-+!      https://doi.org/10.1002/aenm.201800246
-+!
-+!-----------------------------------------------------------------------
-+
++!----------------------------------------------------------------------------
 +program epa
++  !----------------------------------------------------------------------------
++  !
++  !  epa.x:
++  !     reads electron-phonon coupling matrix elements produced by the
++  !     phonon code with electron_phonon = 'epa', and makes a transformation
++  !     from momentum to energy space according to electron-phonon averaged
++  !     (EPA) approximation as described in G. Samsonidze & B. Kozinsky,
++  !     Adv. Energy Mater. 2018, 1800246 doi:10.1002/aenm.201800246
++  !     arXiv:1511.08115
++  !
++  !  Input data:
++  !
++  !     fin
++  !     fout
++  !     job
++  !     ev, dev, nev, bvmin, bvmax
++  !     ec, dec, nec, bcmin, bcmax
++  !     gmax, ndist, nepmax
++  !
++  !     fin        :  input file produced by the phonon code
++  !     fout       :  output file used by the BoltzTraP code
++  !     job        :  job type determines how to average the matrix elements
++  !                   - 'egrid' is to average within bins of evenly spaced
++  !                             energy grids (standard procedure)
++  !                   - 'bpair' is to average over individual pairs of bands
++  !                             (obsolete procedure)
++  !                   - 'gdist' is to construct the histogram for plotting
++  !                             a distribution of squared matrix elements
++  !     ev         :  valence band maximum (in eV)
++  !     dev        :  grid step of the valence energy grid (in eV)
++  !     nev        :  number of bins in the valence energy grid
++  !     bvmin/max  :  subset of valence bands (0/0 for all bands)
++  !     ec         :  conduction band minimum (in eV)
++  !     dec        :  grid step of the conduction energy grid (in eV)
++  !     nec        :  number of bins in the conduction energy grid
++  !     bcmin/max  :  subset of conduction bands (0/0 for all bands)
++  !     gmax       :  range of the histogram (in eV^2)
++  !     ndist      :  number of bins in the histogram
++  !     nepmax     :  maximum number of elements in one bin of the histogram
++  !
++  !  For more details on how to set up the energy grids please refer to
++  !  online documentation at https://github.com/mir-group/EPA
++  !
 +  use kinds, only : dp
 +  use constants, only : ry_to_cmm1, rytoev, degspin, eps12
 +  implicit none
@@ -395,7 +429,7 @@ diff -ur q-e-qe-6.2.1_original/PHonon/PH/epa.f90 q-e-qe-6.2.1/PHonon/PH/epa.f90
 +  real(dp) :: wtot, weight, factor, gbuf, gsum, &
 +      gmax, gstep, ev, dev, ec, dec, wspin, &
 +      ee(nwin), de(nwin), xq(3), at(3, 3), bg(3, 3)
-+  character(len=256) :: fni, fno, job, fmt
++  character(len=256) :: fin, fout, job, fmt
 +  character(len=32) :: s1, s2, s3, s4, s5
 +
 +  real(dp), allocatable :: gdist(:,:,:)
@@ -420,15 +454,15 @@ diff -ur q-e-qe-6.2.1_original/PHonon/PH/epa.f90 q-e-qe-6.2.1/PHonon/PH/epa.f90
 +  complex(dp), allocatable :: el_ph_sum(:,:)
 +
 +  write(6, '("Reading standard input")')
-+  read(5, '(a)') fni
-+  read(5, '(a)') fno
++  read(5, '(a)') fin
++  read(5, '(a)') fout
 +  read(5, '(a)') job
 +  read(5, *) ev, dev, nev, bvmin, bvmax
 +  read(5, *) ec, dec, nec, bcmin, bcmax
 +  read(5, *) gmax, ndist, nepmax
 +
-+  write(6, '("    input file name: ", a)') trim(fni)
-+  write(6, '("    output file name: ", a)') trim(fno)
++  write(6, '("    input file name: ", a)') trim(fin)
++  write(6, '("    output file name: ", a)') trim(fout)
 +  write(6, '("    job type: ", a)') trim(job)
 +  write(s1, '(f16.8)') ev
 +  write(s2, '(f16.8)') dev
@@ -465,8 +499,8 @@ diff -ur q-e-qe-6.2.1_original/PHonon/PH/epa.f90 q-e-qe-6.2.1/PHonon/PH/epa.f90
 +    stop 1
 +  endif
 +
-+  open(uni, file = fni, form = 'unformatted', status = 'old')
-+  write(6, '("Reading file ", a)') trim(fni)
++  open(uni, file = fin, form = 'unformatted', status = 'old')
++  write(6, '("Reading file ", a)') trim(fin)
 +  read(uni) s1, s2, s3
 +  write(6, '("    title: ", a, ", date: ", a, ", time: ", a)') &
 +      trim(s1), trim(s2), trim(s3)
@@ -815,8 +849,8 @@ diff -ur q-e-qe-6.2.1_original/PHonon/PH/epa.f90 q-e-qe-6.2.1/PHonon/PH/epa.f90
 +    enddo
 +  endif
 +
-+  open(uno, file = fno, form = 'formatted', status = 'replace')
-+  write(6, '("Writing file ", a)') trim(fno)
++  open(uno, file = fout, form = 'formatted', status = 'replace')
++  write(6, '("Writing file ", a)') trim(fout)
 +  if (ijob .eq. 1) then
 +    write(uno, '("    mode       <w> (cm^-1)")')
 +    write(uno, '("--------------------------")')
@@ -885,10 +919,11 @@ diff -ur q-e-qe-6.2.1_original/PHonon/PH/epa.f90 q-e-qe-6.2.1/PHonon/PH/epa.f90
 +  deallocate(el_ph_sum)
 +
 +end program epa
-+
++!
++!----------------------------------------------------------------------------
 diff -ur q-e-qe-6.2.1_original/PHonon/PH/Makefile q-e-qe-6.2.1/PHonon/PH/Makefile
---- q-e-qe-6.2.1_original/PHonon/PH/Makefile	2017-12-11 05:41:41.000000000 -0500
-+++ q-e-qe-6.2.1/PHonon/PH/Makefile	2018-05-12 12:38:47.221626812 -0400
+--- q-e-qe-6.2.1_original/PHonon/PH/Makefile	2020-01-25 09:37:54.895160256 -0800
++++ q-e-qe-6.2.1/PHonon/PH/Makefile	2020-01-25 09:38:58.799093623 -0800
 @@ -192,7 +192,7 @@
  TLDEPS= bindir mods libs pw-lib lrmods
  
@@ -911,8 +946,8 @@ diff -ur q-e-qe-6.2.1_original/PHonon/PH/Makefile q-e-qe-6.2.1/PHonon/PH/Makefil
  #	$(MPIF90) $(FFLAGS_NOOPT) -c fqha.f90
  
 diff -ur q-e-qe-6.2.1_original/PHonon/PH/phq_readin.f90 q-e-qe-6.2.1/PHonon/PH/phq_readin.f90
---- q-e-qe-6.2.1_original/PHonon/PH/phq_readin.f90	2017-12-11 05:41:41.000000000 -0500
-+++ q-e-qe-6.2.1/PHonon/PH/phq_readin.f90	2018-05-12 12:27:04.058220813 -0400
+--- q-e-qe-6.2.1_original/PHonon/PH/phq_readin.f90	2020-01-25 09:37:54.899162255 -0800
++++ q-e-qe-6.2.1/PHonon/PH/phq_readin.f90	2020-01-25 09:38:58.799093623 -0800
 @@ -68,7 +68,7 @@
    USE cryst_ph,      ONLY : magnetic_sym
    USE ph_restart,    ONLY : ph_readfile
@@ -969,8 +1004,8 @@ diff -ur q-e-qe-6.2.1_original/PHonon/PH/phq_readin.f90 q-e-qe-6.2.1/PHonon/PH/p
    ! YAMBO >
    IF (.not.elph_yambo) then
 diff -ur q-e-qe-6.2.1_original/PHonon/PH/q_points.f90 q-e-qe-6.2.1/PHonon/PH/q_points.f90
---- q-e-qe-6.2.1_original/PHonon/PH/q_points.f90	2017-12-11 05:41:41.000000000 -0500
-+++ q-e-qe-6.2.1/PHonon/PH/q_points.f90	2018-05-12 12:13:26.849820811 -0400
+--- q-e-qe-6.2.1_original/PHonon/PH/q_points.f90	2020-01-25 09:37:54.899162255 -0800
++++ q-e-qe-6.2.1/PHonon/PH/q_points.f90	2020-01-25 09:38:58.803095623 -0800
 @@ -11,7 +11,7 @@
  
    USE kinds, only : dp
