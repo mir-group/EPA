@@ -1,6 +1,6 @@
 diff -ur q-e-qe-6.2.1_original/PHonon/PH/check_initial_status.f90 q-e-qe-6.2.1/PHonon/PH/check_initial_status.f90
---- q-e-qe-6.2.1_original/PHonon/PH/check_initial_status.f90	2020-01-26 17:14:58.806366754 -0800
-+++ q-e-qe-6.2.1/PHonon/PH/check_initial_status.f90	2020-01-26 17:15:25.143529841 -0800
+--- q-e-qe-6.2.1_original/PHonon/PH/check_initial_status.f90	2020-01-27 07:26:21.661514311 -0800
++++ q-e-qe-6.2.1/PHonon/PH/check_initial_status.f90	2020-01-27 07:27:44.382857438 -0800
 @@ -72,7 +72,7 @@
    USE io_files,        ONLY : tmp_dir
    USE lsda_mod,        ONLY : nspin
@@ -22,8 +22,8 @@ diff -ur q-e-qe-6.2.1_original/PHonon/PH/check_initial_status.f90 q-e-qe-6.2.1/P
          !
       END IF
 diff -ur q-e-qe-6.2.1_original/PHonon/PH/do_phonon.f90 q-e-qe-6.2.1/PHonon/PH/do_phonon.f90
---- q-e-qe-6.2.1_original/PHonon/PH/do_phonon.f90	2020-01-26 17:14:58.806366754 -0800
-+++ q-e-qe-6.2.1/PHonon/PH/do_phonon.f90	2020-01-26 17:15:25.143529841 -0800
+--- q-e-qe-6.2.1_original/PHonon/PH/do_phonon.f90	2020-01-27 07:26:21.661514311 -0800
++++ q-e-qe-6.2.1/PHonon/PH/do_phonon.f90	2020-01-27 07:27:44.386859438 -0800
 @@ -33,7 +33,7 @@
    USE disp,            ONLY : nqs
    USE control_ph,      ONLY : epsil, trans, qplot, only_init, &
@@ -43,8 +43,8 @@ diff -ur q-e-qe-6.2.1_original/PHonon/PH/do_phonon.f90 q-e-qe-6.2.1/PHonon/PH/do
             CALL elph_yambo_eval_and_IO()
          ELSEIF(elph_tetra == 1) THEN
 diff -ur q-e-qe-6.2.1_original/PHonon/PH/elph.f90 q-e-qe-6.2.1/PHonon/PH/elph.f90
---- q-e-qe-6.2.1_original/PHonon/PH/elph.f90	2020-01-26 17:14:58.806366754 -0800
-+++ q-e-qe-6.2.1/PHonon/PH/elph.f90	2020-01-26 17:15:25.143529841 -0800
+--- q-e-qe-6.2.1_original/PHonon/PH/elph.f90	2020-01-27 07:26:21.661514311 -0800
++++ q-e-qe-6.2.1/PHonon/PH/elph.f90	2020-01-27 07:27:44.386859438 -0800
 @@ -12,7 +12,7 @@
    !
    SAVE
@@ -55,8 +55,8 @@ diff -ur q-e-qe-6.2.1_original/PHonon/PH/elph.f90 q-e-qe-6.2.1/PHonon/PH/elph.f9
    INTEGER :: el_ph_ngauss, el_ph_nsigma
    INTEGER :: iunwfcwann, lrwfcr
 diff -ur q-e-qe-6.2.1_original/PHonon/PH/elphon.f90 q-e-qe-6.2.1/PHonon/PH/elphon.f90
---- q-e-qe-6.2.1_original/PHonon/PH/elphon.f90	2020-01-26 17:14:58.806366754 -0800
-+++ q-e-qe-6.2.1/PHonon/PH/elphon.f90	2020-01-26 17:15:25.143529841 -0800
+--- q-e-qe-6.2.1_original/PHonon/PH/elphon.f90	2020-01-27 07:26:21.661514311 -0800
++++ q-e-qe-6.2.1/PHonon/PH/elphon.f90	2020-01-27 07:27:44.386859438 -0800
 @@ -1140,6 +1140,296 @@
  END SUBROUTINE elphsum_simple
     
@@ -355,9 +355,9 @@ diff -ur q-e-qe-6.2.1_original/PHonon/PH/elphon.f90 q-e-qe-6.2.1/PHonon/PH/elpho
    !-----------------------------------------------------------------------
    !
 diff -ur q-e-qe-6.2.1_original/PHonon/PH/epa.f90 q-e-qe-6.2.1/PHonon/PH/epa.f90
---- q-e-qe-6.2.1_original/PHonon/PH/epa.f90	2020-01-26 17:14:58.806366754 -0800
-+++ q-e-qe-6.2.1/PHonon/PH/epa.f90	2020-01-26 17:15:43.632770597 -0800
-@@ -0,0 +1,566 @@
+--- q-e-qe-6.2.1_original/PHonon/PH/epa.f90	2020-01-27 07:26:21.661514311 -0800
++++ q-e-qe-6.2.1/PHonon/PH/epa.f90	2020-01-27 07:42:03.051674500 -0800
+@@ -0,0 +1,565 @@
 +!
 +! Copyright (C) 2018 Quantum ESPRESSO group
 +! This file is distributed under the terms of the
@@ -428,7 +428,7 @@ diff -ur q-e-qe-6.2.1_original/PHonon/PH/epa.f90 q-e-qe-6.2.1/PHonon/PH/epa.f90
 +      nat, nsymq, irotmq, iq, ik, ikk, ikq, ibnd, jbnd, &
 +      nu, mu, vu, ipert, jpert, ii, jj, kk, ll, ijob, &
 +      nbinv, ivmin, ivmax, nbinc, icmin, icmax, nbing, ngmax, &
-+      nbinmin, nbinmax, nbin(ngrid), nhist(ngrid), bpair(2, ngrid), &
++      nbinmax, nbin(ngrid), nhist(ngrid), bpair(2, ngrid), &
 +      s(3, 3, 48), invs(48)
 +  real(dp) :: wtot, weight, factor, gbuf, gsum, &
 +      stepg, edgev, stepv, edgec, stepc, wspin, &
@@ -527,7 +527,6 @@ diff -ur q-e-qe-6.2.1_original/PHonon/PH/epa.f90 q-e-qe-6.2.1/PHonon/PH/epa.f90
 +  edge = (/edgev, edgec/)
 +  step = (/stepv, stepc/)
 +  nbin = (/nbinv, nbinc/)
-+  nbinmin = minval(nbin)
 +  nbinmax = maxval(nbin)
 +  bpair = reshape((/ivmin, ivmax, icmin, icmax/), shape(bpair))
 +  do ii = 1, ngrid
@@ -690,8 +689,8 @@ diff -ur q-e-qe-6.2.1_original/PHonon/PH/epa.f90 q-e-qe-6.2.1/PHonon/PH/epa.f90
 +      enddo
 +    elseif (ijob .eq. 2) then
 +      do ii = 1, ngrid
-+        do jj = 1, nbinmax
-+          do kk = 1, nbinmax
++        do jj = 1, nbin(ii)
++          do kk = 1, nbin(ii)
 +            el_ph_sum(:,:) = (0.0d0, 0.0d0)
 +            do ik = 1, nksqtot
 +              ikk = ikks(ik)
@@ -819,8 +818,8 @@ diff -ur q-e-qe-6.2.1_original/PHonon/PH/epa.f90 q-e-qe-6.2.1/PHonon/PH/epa.f90
 +    enddo
 +  elseif (ijob .eq. 2) then
 +    do ii = 1, ngrid
-+      do jj = 1, nbinmax
-+        do kk = 1, nbinmax
++      do jj = 1, nbin(ii)
++        do kk = 1, nbin(ii)
 +          if (gtot(kk, jj, ii) .gt. eps12) then
 +            do nu = 1, nmodes
 +              gavg(nu, kk, jj, ii) = gavg(nu, kk, jj, ii) / gtot(kk, jj, ii)
@@ -843,8 +842,8 @@ diff -ur q-e-qe-6.2.1_original/PHonon/PH/epa.f90 q-e-qe-6.2.1/PHonon/PH/epa.f90
 +        " ""weight"", a))")') ngrid
 +    write(6, fmt) ('v', ll = 1, 5), ('c', ll = 1, 5)
 +    write(fmt, '("(", i0, "(2f12.6, e18.8, i8, f12.6))")') ngrid
-+    do jj = 1, nbinmin
-+      do kk = 1, nbinmin
++    do jj = 1, nbinmax
++      do kk = 1, nbinmax
 +        write(6, fmt) ((jj - 0.5d0) * step(ii), (kk - 0.5d0) * step(ii), &
 +            sum(gavg(:, kk, jj, ii)), gnum(kk, jj, ii), gtot(kk, jj, ii), &
 +            ii = 1, ngrid)
@@ -925,8 +924,8 @@ diff -ur q-e-qe-6.2.1_original/PHonon/PH/epa.f90 q-e-qe-6.2.1/PHonon/PH/epa.f90
 +!
 +!----------------------------------------------------------------------------
 diff -ur q-e-qe-6.2.1_original/PHonon/PH/Makefile q-e-qe-6.2.1/PHonon/PH/Makefile
---- q-e-qe-6.2.1_original/PHonon/PH/Makefile	2020-01-26 17:14:58.806366754 -0800
-+++ q-e-qe-6.2.1/PHonon/PH/Makefile	2020-01-26 17:15:25.147531841 -0800
+--- q-e-qe-6.2.1_original/PHonon/PH/Makefile	2020-01-27 07:26:21.661514311 -0800
++++ q-e-qe-6.2.1/PHonon/PH/Makefile	2020-01-27 07:27:44.386859438 -0800
 @@ -192,7 +192,7 @@
  TLDEPS= bindir mods libs pw-lib lrmods
  
@@ -949,8 +948,8 @@ diff -ur q-e-qe-6.2.1_original/PHonon/PH/Makefile q-e-qe-6.2.1/PHonon/PH/Makefil
  #	$(MPIF90) $(FFLAGS_NOOPT) -c fqha.f90
  
 diff -ur q-e-qe-6.2.1_original/PHonon/PH/phq_readin.f90 q-e-qe-6.2.1/PHonon/PH/phq_readin.f90
---- q-e-qe-6.2.1_original/PHonon/PH/phq_readin.f90	2020-01-26 17:14:58.810368754 -0800
-+++ q-e-qe-6.2.1/PHonon/PH/phq_readin.f90	2020-01-26 17:15:25.147531841 -0800
+--- q-e-qe-6.2.1_original/PHonon/PH/phq_readin.f90	2020-01-27 07:26:21.661514311 -0800
++++ q-e-qe-6.2.1/PHonon/PH/phq_readin.f90	2020-01-27 07:27:44.386859438 -0800
 @@ -68,7 +68,7 @@
    USE cryst_ph,      ONLY : magnetic_sym
    USE ph_restart,    ONLY : ph_readfile
@@ -1007,8 +1006,8 @@ diff -ur q-e-qe-6.2.1_original/PHonon/PH/phq_readin.f90 q-e-qe-6.2.1/PHonon/PH/p
    ! YAMBO >
    IF (.not.elph_yambo) then
 diff -ur q-e-qe-6.2.1_original/PHonon/PH/q_points.f90 q-e-qe-6.2.1/PHonon/PH/q_points.f90
---- q-e-qe-6.2.1_original/PHonon/PH/q_points.f90	2020-01-26 17:14:58.810368754 -0800
-+++ q-e-qe-6.2.1/PHonon/PH/q_points.f90	2020-01-26 17:15:25.147531841 -0800
+--- q-e-qe-6.2.1_original/PHonon/PH/q_points.f90	2020-01-27 07:26:21.661514311 -0800
++++ q-e-qe-6.2.1/PHonon/PH/q_points.f90	2020-01-27 07:27:44.386859438 -0800
 @@ -11,7 +11,7 @@
  
    USE kinds, only : dp
