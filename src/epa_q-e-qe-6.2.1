@@ -369,50 +369,50 @@ diff -ur q-e-qe-6.2.1_original/PHonon/PH/epa.f90 q-e-qe-6.2.1/PHonon/PH/epa.f90
 +program epa
 +  !----------------------------------------------------------------------------
 +  !
-+  !  epa.x:
-+  !     reads electron-phonon coupling matrix elements produced by the
-+  !     phonon code with electron_phonon = 'epa', and makes a transformation
-+  !     from momentum to energy space according to electron-phonon averaged
-+  !     (EPA) approximation as described in G. Samsonidze & B. Kozinsky,
-+  !     Adv. Energy Mater. 2018, 1800246 doi:10.1002/aenm.201800246
-+  !     arXiv:1511.08115
-+  !
-+  !  Input data:
-+  !
-+  !     fin
-+  !     fout
-+  !     job
-+  !     edgev, stepv, nbinv, ivmin, ivmax
-+  !     edgec, stepc, nbinc, icmin, icmax
-+  !     stepg, nbing, ngmax
-+  !
-+  !     fin        :  input file produced by the phonon code
-+  !     fout       :  output file used by the BoltzTraP code
-+  !     job        :  job type determines how to average the matrix elements
-+  !                   - 'egrid' is to average within bins of regular energy
-+  !                             grids (standard procedure)
-+  !                   - 'bpair' is to average over individual pairs of bands
-+  !                             (obsolete procedure)
-+  !                   - 'ghist' is to construct the histogram for plotting
-+  !                             a distribution of squared matrix elements
-+  !     edgev      :  grid edge of the valence energy grid (in eV), set to
-+  !                   the valence band maximum
-+  !     stepv      :  grid step of the valence energy grid (in eV), set to
-+  !                   a small negative value
-+  !     nbinv      :  number of bins in the valence energy grid
-+  !     ivmin/max  :  range of valence bands (0/0 for all valence bands)
-+  !     edgec      :  grid edge of the conduction energy grid (in eV), set to
-+  !                   the conduction band minimum
-+  !     stepc      :  grid step of the conduction energy grid (in eV), set to
-+  !                   a small positive value
-+  !     nbinc      :  number of bins in the conduction energy grid
-+  !     icmin/max  :  range of conduction bands (0/0 for all conduction bands)
-+  !     stepg      :  grid step for the histogram (in eV^2)
-+  !     nbing      :  number of bins for the histogram
-+  !     ngmax      :  maximum number of elements in one bin of the histogram
-+  !
-+  !  For more details on how to set up the energy grids please refer to
-+  !  online documentation at https://github.com/mir-group/EPA
++  !! epa.x:
++  !!    reads electron-phonon coupling matrix elements produced by the
++  !!    phonon code with electron_phonon = 'epa', and makes a transformation
++  !!    from momentum to energy space according to electron-phonon averaged
++  !!    (EPA) approximation as described in G. Samsonidze & B. Kozinsky,
++  !!    Adv. Energy Mater. 2018, 1800246 doi:10.1002/aenm.201800246
++  !!    arXiv:1511.08115
++  !!
++  !! Input data:
++  !!
++  !!    fin
++  !!    fout
++  !!    job
++  !!    edgev, stepv, nbinv, ivmin, ivmax
++  !!    edgec, stepc, nbinc, icmin, icmax
++  !!    stepg, nbing, ngmax
++  !!
++  !!    fin        :  input file produced by the phonon code
++  !!    fout       :  output file used by the BoltzTraP code
++  !!    job        :  job type determines how to average the matrix elements
++  !!                  - 'egrid' is to average within bins of regular energy
++  !!                            grids (standard procedure)
++  !!                  - 'bpair' is to average over individual pairs of bands
++  !!                            (obsolete procedure)
++  !!                  - 'ghist' is to construct the histogram for plotting
++  !!                            a distribution of squared matrix elements
++  !!    edgev      :  grid edge of the valence energy grid (in eV), set to
++  !!                  the valence band maximum
++  !!    stepv      :  grid step of the valence energy grid (in eV), set to
++  !!                  a small negative value
++  !!    nbinv      :  number of bins in the valence energy grid
++  !!    ivmin/max  :  range of valence bands (0/0 for all valence bands)
++  !!    edgec      :  grid edge of the conduction energy grid (in eV), set to
++  !!                  the conduction band minimum
++  !!    stepc      :  grid step of the conduction energy grid (in eV), set to
++  !!                  a small positive value
++  !!    nbinc      :  number of bins in the conduction energy grid
++  !!    icmin/max  :  range of conduction bands (0/0 for all conduction bands)
++  !!    stepg      :  grid step for the histogram (in eV^2)
++  !!    nbing      :  number of bins for the histogram
++  !!    ngmax      :  maximum number of elements in one bin of the histogram
++  !!
++  !! For more details on how to set up the energy grids please refer to
++  !! online documentation at https://github.com/mir-group/EPA
 +  !
 +  use kinds, only : dp
 +  use constants, only : ry_to_cmm1, rytoev, degspin, eps12
