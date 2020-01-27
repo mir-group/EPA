@@ -50,9 +50,9 @@ diff -ur boltztrap-1.2.5_original/src/fermiintegrals.F90 boltztrap-1.2.5/src/fer
    integer :: un_tr, un_ct, un_ht, un_trfix, un_ctfix, un_htfix
    CHARACTER(len=20)      :: dummystring
  
-+  INTEGER                :: ii, jj, kk, ll, mm, nn, oo, nwin, nmodes, nemax, iepa, ike0j
-+  INTEGER, ALLOCATABLE   :: ne(:)
-+  REAL(8), ALLOCATABLE   :: ee(:), de(:), wavg(:), gavg(:,:,:,:)
++  INTEGER                :: ii, jj, kk, ll, mm, nn, oo, ngrid, nmodes, nbinmax, iepa, ike0j
++  INTEGER, ALLOCATABLE   :: nbin(:)
++  REAL(8), ALLOCATABLE   :: edge(:), step(:), wavg(:), gavg(:,:,:,:)
 +  LOGICAL :: kappaelzeroj
 +
    type(fermispl_type) :: splobj
@@ -65,29 +65,29 @@ diff -ur boltztrap-1.2.5_original/src/fermiintegrals.F90 boltztrap-1.2.5/src/fer
 +!
 +!-epa-1-begin
 +!
-+  READ(unepa, *, iostat = iepa) nwin, nmodes
++  READ(unepa, *, iostat = iepa) ngrid, nmodes
 +  IF (iepa == 0) THEN
-+    ALLOCATE(ee(nwin))
-+    ALLOCATE(de(nwin))
-+    ALLOCATE(ne(nwin))
-+    do ii = 1, nwin
-+      READ(unepa, *) ee(ii), de(ii), ne(ii) ! ee & de in eV
++    ALLOCATE(edge(ngrid))
++    ALLOCATE(step(ngrid))
++    ALLOCATE(nbin(ngrid))
++    do ii = 1, ngrid
++      READ(unepa, *) edge(ii), step(ii), nbin(ii) ! edge & step in eV
 +    enddo
 +    ALLOCATE(wavg(nmodes))
 +    READ(unepa, *) (wavg(ll), ll = 1, nmodes) ! <w> in cm^-1
-+    nemax = maxval(ne)
-+    ALLOCATE(gavg(nmodes, nemax, nemax, nwin))
-+    do ii = 1, nwin
-+      do jj = 1, ne(ii)
-+        do kk = 1, ne(ii)
++    nbinmax = maxval(nbin)
++    ALLOCATE(gavg(nmodes, nbinmax, nbinmax, ngrid))
++    do ii = 1, ngrid
++      do jj = 1, nbin(ii)
++        do kk = 1, nbin(ii)
 +          READ(unepa, *) mm, nn, oo, (gavg(ll, kk, jj, ii), ll = 1, nmodes) ! <|g|^2> in eV^2
 +        enddo
 +      enddo
 +    enddo
 +
-+    ! convert ee & de from eV to Ha
-+    ee(:) = ee(:) * EV
-+    de(:) = de(:) * EV
++    ! convert edge & step from eV to Ha
++    edge(:) = edge(:) * EV
++    step(:) = step(:) * EV
 +    ! convert <w> from cm^-1 to Ha
 +    wavg(:) = wavg(:) * (2.0d0 * PI * Hbar_SI * JOULE) * (1.0d2 * Clight_SI)
 +    ! convert <|g|^2> from eV^2 to Ha^2
@@ -108,7 +108,7 @@ diff -ur boltztrap-1.2.5_original/src/fermiintegrals.F90 boltztrap-1.2.5/src/fer
          call fermiint_fix_ef_T(cell%volume, efermi, deltaef, ebmin, temp, &
 -             un_tr, un_ct, un_ht, npoints, dos1, dos_sigxy, dos_sigxyz, spinorbit, icut1, 1, splobj)
 +             un_tr, un_ct, un_ht, npoints, dos1, dos_sigxy, dos_sigxyz, spinorbit, icut1, 1, splobj, &
-+             iepa, nwin, nmodes, nemax, ee, de, ne, wavg, gavg, kappaelzeroj)
++             iepa, ngrid, nmodes, nbinmax, edge, step, nbin, wavg, gavg, kappaelzeroj)
       ENDDO
    ENDDO
  
@@ -118,7 +118,7 @@ diff -ur boltztrap-1.2.5_original/src/fermiintegrals.F90 boltztrap-1.2.5/src/fer
        call fermiint_fix_ef_T(cell%volume, efermi, deltaef, ebmin,  temp, &
 -           un_trfix, un_ctfix, un_htfix, npoints, dos1, dos_sigxy, dos_sigxyz, spinorbit, icut1, 0, splobj)
 +           un_trfix, un_ctfix, un_htfix, npoints, dos1, dos_sigxy, dos_sigxyz, spinorbit, icut1, 0, splobj, &
-+           iepa, nwin, nmodes, nemax, ee, de, ne, wavg, gavg, kappaelzeroj)
++           iepa, ngrid, nmodes, nbinmax, edge, step, nbin, wavg, gavg, kappaelzeroj)
      end do
      WRITE (un_trfix,*)
      WRITE (un_ctfix,*)
@@ -127,9 +127,9 @@ diff -ur boltztrap-1.2.5_original/src/fermiintegrals.F90 boltztrap-1.2.5/src/fer
    close (un_htfix)
  
 +  IF (iepa == 0) THEN
-+    DEALLOCATE(ee)
-+    DEALLOCATE(de)
-+    DEALLOCATE(ne)
++    DEALLOCATE(edge)
++    DEALLOCATE(step)
++    DEALLOCATE(nbin)
 +    DEALLOCATE(wavg)
 +    DEALLOCATE(gavg)
 +  ENDIF
@@ -142,7 +142,7 @@ diff -ur boltztrap-1.2.5_original/src/fermiintegrals.F90 boltztrap-1.2.5/src/fer
  subroutine fermiint_fix_ef_T(volume, efermi, deltaef, ebmin, temp, &
      unit_tr, unit_cond, unit_hall, npoints, dos1, dos_sigxy, dos_sigxyz, spinorbit, icut1, prtef, &
 -    splobj)
-+    splobj, iepa, nwin, nmodes, nemax, ee, de, ne, wavg, gavg, kappaelzeroj)
++    splobj, iepa, ngrid, nmodes, nbinmax, edge, step, nbin, wavg, gavg, kappaelzeroj)
  
   USE constants
   USE input
@@ -150,8 +150,8 @@ diff -ur boltztrap-1.2.5_original/src/fermiintegrals.F90 boltztrap-1.2.5/src/fer
  
   type(fermispl_type), intent(in) :: splobj
  
-+ integer, intent(in) :: iepa, nwin, nmodes, nemax, ne(nwin)
-+ real(8), intent(in) :: ee(nwin), de(nwin), wavg(nmodes), gavg(nmodes, nemax, nemax, nwin)
++ integer, intent(in) :: iepa, ngrid, nmodes, nbinmax, nbin(ngrid)
++ real(8), intent(in) :: edge(ngrid), step(ngrid), wavg(nmodes), gavg(nmodes, nbinmax, nbinmax, ngrid)
 + logical, intent(in) :: kappaelzeroj
 +
  ! local vars
@@ -168,7 +168,7 @@ diff -ur boltztrap-1.2.5_original/src/fermiintegrals.F90 boltztrap-1.2.5/src/fer
  ! functions
   REAL(8)                :: fermi,dfermide,dfermidt
  
-+ ALLOCATE(gj(nemax))
++ ALLOCATE(gj(nbinmax))
 +
  !source
   specheat=ZERO
@@ -199,25 +199,25 @@ diff -ur boltztrap-1.2.5_original/src/fermiintegrals.F90 boltztrap-1.2.5/src/fer
 +          dosa = volume * (dos1(i + ibet) * (1.0d0 - xx) + dos1(i + ibet + 1) * xx)
 +          dose = volume * (dos1(i - ibet - 1) * xx + dos1(i - ibet) * (1.0d0 - xx))
 +
-+          if (ene .LT. sum(ee) / nwin) then
++          if (ene .LT. sum(edge) / ngrid) then
 +            ii = 1
 +          else
 +            ii = 2
 +          endif
-+          if (ne(ii) .eq. 1) then
++          if (nbin(ii) .eq. 1) then
 +            gk(:) = gavg(ll, 1, 1, ii)
 +          else
-+            xx = (ene - ee(ii)) / de(ii)
++            xx = (ene - edge(ii)) / step(ii)
 +            xx = max(xx, 1.0d-12)
-+            xx = min(xx, ne(ii) - 1.0d-12)
++            xx = min(xx, nbin(ii) - 1.0d-12)
 +            jj = int(xx) + 1
-+            do kk = 1, nemax
++            do kk = 1, nbinmax
 +              gj(kk) = gavg(ll, kk, jj, ii)
 +            enddo
 +            do mm = 1, 2
-+              xx = (ene + wavg(ll) * (3 - 2 * mm) - ee(ii)) / de(ii)
++              xx = (ene + wavg(ll) * (3 - 2 * mm) - edge(ii)) / step(ii)
 +              xx = max(xx, 1.0d-12)
-+              xx = min(xx, ne(ii) - 1.0d-12)
++              xx = min(xx, nbin(ii) - 1.0d-12)
 +              kk = int(xx) + 1
 +              gk(mm) = gj(kk)
 +            enddo
@@ -303,7 +303,7 @@ diff -ur boltztrap-1.2.5_original/src/m_interfaces.F90 boltztrap-1.2.5/src/m_int
  subroutine fermiint_fix_ef_T(volume, efermi, deltaef, ebmin, temp, &
      unit_tr, unit_cond, unit_hall, npoints, dos1, dos_sigxy, dos_sigxyz, spinorbit, icut1, prtef, &
 -    splobj)
-+    splobj, iepa, nwin, nmodes, nemax, ee, de, ne, wavg, gavg, kappaelzeroj)
++    splobj, iepa, ngrid, nmodes, nbinmax, edge, step, nbin, wavg, gavg, kappaelzeroj)
   USE constants
   USE input
   USE bandstructure
@@ -311,8 +311,8 @@ diff -ur boltztrap-1.2.5_original/src/m_interfaces.F90 boltztrap-1.2.5/src/m_int
   real(8), intent(in) :: dos_sigxy(3,3,0:npoints)
   real(8), intent(in) :: dos_sigxyz(3,3,3,0:npoints)
   type(fermispl_type),intent(in) :: splobj
-+ integer, intent(in) :: iepa, nwin, nmodes, nemax, ne(nwin)
-+ real(8), intent(in) :: ee(nwin), de(nwin), wavg(nmodes), gavg(nmodes, nemax, nemax, nwin)
++ integer, intent(in) :: iepa, ngrid, nmodes, nbinmax, nbin(ngrid)
++ real(8), intent(in) :: edge(ngrid), step(ngrid), wavg(nmodes), gavg(nmodes, nbinmax, nbinmax, ngrid)
 + logical, intent(in) :: kappaelzeroj
  
  end subroutine fermiint_fix_ef_T

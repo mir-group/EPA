@@ -92,26 +92,26 @@ diff -ur BoltzTraP2-18.5.1_original/BoltzTraP2/bandlib.py BoltzTraP2-18.5.1/Bolt
 +    """
 +    with open(epa_file, 'rb') as ff:
 +        tt = ff.readline().split()
-+        nwin = int(tt[0])
++        ngrid = int(tt[0])
 +        nmode = int(tt[1])
 +
-+        ee = np.empty(nwin, float)
-+        de = np.empty(nwin, float)
-+        ne = np.empty(nwin, int)
-+        for ii in range(nwin):
++        edge = np.empty(ngrid, float)
++        step =  np.empty(ngrid, float)
++        nbin = np.empty(ngrid, int)
++        for ii in range(ngrid):
 +            tt = ff.readline().split()
-+            ee[ii] = float(tt[0])
-+            de[ii] = float(tt[1])
-+            ne[ii] = int(tt[2])
++            edge[ii] = float(tt[0])
++            step[ii] = float(tt[1])
++            nbin[ii] = int(tt[2])
 +
 +        wavg = np.fromfile(ff, dtype = float, count = nmode, sep = ' ')
-+        nemax = np.amax(ne)
++        nbinmax = np.amax(nbin)
 +        gavg = np.loadtxt(ff, dtype = float, usecols = (ii for ii in range(
-+            3, 3 + nmode))).reshape(nwin, nemax, nemax, nmode)
++            3, 3 + nmode))).reshape(ngrid, nbinmax, nbinmax, nmode)
 +
 +        wavg *= 100 * 2 * math.pi * hbar_SI / qe_SI * Clight_SI
-+        ee, de, wavg, gavg = (xx * eV for xx in (ee, de, wavg, gavg))
-+        epa_params = [nwin, nmode, nemax, ee, de, ne, wavg, gavg]
++        edge, step, wavg, gavg = (xx * eV for xx in (edge, step, wavg, gavg))
++        epa_params = [ngrid, nmode, nbinmax, edge, step, nbin, wavg, gavg]
 +        return epa_params
 +
 +def epa_calc(mu, kBT, en, epsilon, dos, epa_params):
@@ -133,13 +133,13 @@ diff -ur BoltzTraP2-18.5.1_original/BoltzTraP2/bandlib.py BoltzTraP2-18.5.1/Bolt
 +    Returns:
 +        tau: electron relaxation time, in seconds, same shape as en.
 +    """
-+    nwin, nmode, nemax, ee, de, ne, wavg, gavg = epa_params
++    ngrid, nmode, nbinmax, edge, step, nbin, wavg, gavg = epa_params
 +
 +    EPS12 = 1e-12
 +    nepa = en.shape[0]
 +    ww = wavg
 +
-+    gj = np.empty(nemax, float)
++    gj = np.empty(nbinmax, float)
 +    gk = np.empty(2, float)
 +    invtau = np.empty(nepa, float)
 +
@@ -152,23 +152,23 @@ diff -ur BoltzTraP2-18.5.1_original/BoltzTraP2/bandlib.py BoltzTraP2-18.5.1/Bolt
 +            dosa = np.interp(en[nn] + ww[ll], epsilon, dos)
 +            dose = np.interp(en[nn] - ww[ll], epsilon, dos)
 +
-+            if (en[nn] < np.sum(ee) / nwin):
++            if (en[nn] < np.sum(edge) / ngrid):
 +                ii = 0
 +            else:
 +                ii = 1
-+            if (ne[ii] == 1):
++            if (nbin[ii] == 1):
 +                gk[:] = gavg[ii, 0, 0, ll]
 +            else:
-+                xx = (en[nn] - ee[ii]) / de[ii]
++                xx = (en[nn] - edge[ii]) / step[ii]
 +                xx = max(xx, EPS12)
-+                xx = min(xx, ne[ii] - EPS12)
++                xx = min(xx, nbin[ii] - EPS12)
 +                jj = int(xx)
-+                for kk in range(nemax):
++                for kk in range(nbinmax):
 +                    gj[kk] = gavg[ii, jj, kk, ll]
 +                for mm in range(2):
-+                    xx = (en[nn] + ww[ll] * (1 - 2 * mm) - ee[ii]) / de[ii]
++                    xx = (en[nn] + ww[ll] * (1 - 2 * mm) - edge[ii]) / step[ii]
 +                    xx = max(xx, EPS12)
-+                    xx = min(xx, ne[ii] - EPS12)
++                    xx = min(xx, nbin[ii] - EPS12)
 +                    kk = int(xx)
 +                    gk[mm] = gj[kk]
 +
