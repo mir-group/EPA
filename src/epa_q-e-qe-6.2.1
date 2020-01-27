@@ -1,6 +1,6 @@
 diff -ur q-e-qe-6.2.1_original/PHonon/PH/check_initial_status.f90 q-e-qe-6.2.1/PHonon/PH/check_initial_status.f90
---- q-e-qe-6.2.1_original/PHonon/PH/check_initial_status.f90	2020-01-25 09:37:54.895160256 -0800
-+++ q-e-qe-6.2.1/PHonon/PH/check_initial_status.f90	2020-01-25 09:38:58.799093623 -0800
+--- q-e-qe-6.2.1_original/PHonon/PH/check_initial_status.f90	2020-01-26 17:14:58.806366754 -0800
++++ q-e-qe-6.2.1/PHonon/PH/check_initial_status.f90	2020-01-26 17:15:25.143529841 -0800
 @@ -72,7 +72,7 @@
    USE io_files,        ONLY : tmp_dir
    USE lsda_mod,        ONLY : nspin
@@ -22,8 +22,8 @@ diff -ur q-e-qe-6.2.1_original/PHonon/PH/check_initial_status.f90 q-e-qe-6.2.1/P
          !
       END IF
 diff -ur q-e-qe-6.2.1_original/PHonon/PH/do_phonon.f90 q-e-qe-6.2.1/PHonon/PH/do_phonon.f90
---- q-e-qe-6.2.1_original/PHonon/PH/do_phonon.f90	2020-01-25 09:37:54.895160256 -0800
-+++ q-e-qe-6.2.1/PHonon/PH/do_phonon.f90	2020-01-25 09:38:58.799093623 -0800
+--- q-e-qe-6.2.1_original/PHonon/PH/do_phonon.f90	2020-01-26 17:14:58.806366754 -0800
++++ q-e-qe-6.2.1/PHonon/PH/do_phonon.f90	2020-01-26 17:15:25.143529841 -0800
 @@ -33,7 +33,7 @@
    USE disp,            ONLY : nqs
    USE control_ph,      ONLY : epsil, trans, qplot, only_init, &
@@ -43,8 +43,8 @@ diff -ur q-e-qe-6.2.1_original/PHonon/PH/do_phonon.f90 q-e-qe-6.2.1/PHonon/PH/do
             CALL elph_yambo_eval_and_IO()
          ELSEIF(elph_tetra == 1) THEN
 diff -ur q-e-qe-6.2.1_original/PHonon/PH/elph.f90 q-e-qe-6.2.1/PHonon/PH/elph.f90
---- q-e-qe-6.2.1_original/PHonon/PH/elph.f90	2020-01-25 09:37:54.899162255 -0800
-+++ q-e-qe-6.2.1/PHonon/PH/elph.f90	2020-01-25 09:38:58.799093623 -0800
+--- q-e-qe-6.2.1_original/PHonon/PH/elph.f90	2020-01-26 17:14:58.806366754 -0800
++++ q-e-qe-6.2.1/PHonon/PH/elph.f90	2020-01-26 17:15:25.143529841 -0800
 @@ -12,7 +12,7 @@
    !
    SAVE
@@ -55,8 +55,8 @@ diff -ur q-e-qe-6.2.1_original/PHonon/PH/elph.f90 q-e-qe-6.2.1/PHonon/PH/elph.f9
    INTEGER :: el_ph_ngauss, el_ph_nsigma
    INTEGER :: iunwfcwann, lrwfcr
 diff -ur q-e-qe-6.2.1_original/PHonon/PH/elphon.f90 q-e-qe-6.2.1/PHonon/PH/elphon.f90
---- q-e-qe-6.2.1_original/PHonon/PH/elphon.f90	2020-01-25 09:37:54.899162255 -0800
-+++ q-e-qe-6.2.1/PHonon/PH/elphon.f90	2020-01-25 09:44:46.240713248 -0800
+--- q-e-qe-6.2.1_original/PHonon/PH/elphon.f90	2020-01-26 17:14:58.806366754 -0800
++++ q-e-qe-6.2.1/PHonon/PH/elphon.f90	2020-01-26 17:15:25.143529841 -0800
 @@ -1140,6 +1140,296 @@
  END SUBROUTINE elphsum_simple
     
@@ -355,9 +355,9 @@ diff -ur q-e-qe-6.2.1_original/PHonon/PH/elphon.f90 q-e-qe-6.2.1/PHonon/PH/elpho
    !-----------------------------------------------------------------------
    !
 diff -ur q-e-qe-6.2.1_original/PHonon/PH/epa.f90 q-e-qe-6.2.1/PHonon/PH/epa.f90
---- q-e-qe-6.2.1_original/PHonon/PH/epa.f90	2020-01-25 09:44:25.686442092 -0800
-+++ q-e-qe-6.2.1/PHonon/PH/epa.f90	2020-01-25 09:47:30.558824476 -0800
-@@ -0,0 +1,563 @@
+--- q-e-qe-6.2.1_original/PHonon/PH/epa.f90	2020-01-26 17:14:58.806366754 -0800
++++ q-e-qe-6.2.1/PHonon/PH/epa.f90	2020-01-26 17:15:43.632770597 -0800
+@@ -0,0 +1,566 @@
 +!
 +! Copyright (C) 2018 Quantum ESPRESSO group
 +! This file is distributed under the terms of the
@@ -382,30 +382,34 @@ diff -ur q-e-qe-6.2.1_original/PHonon/PH/epa.f90 q-e-qe-6.2.1/PHonon/PH/epa.f90
 +  !     fin
 +  !     fout
 +  !     job
-+  !     ev, dev, nev, bvmin, bvmax
-+  !     ec, dec, nec, bcmin, bcmax
-+  !     gmax, ndist, nepmax
++  !     edgev, stepv, nbinv, ivmin, ivmax
++  !     edgec, stepc, nbinc, icmin, icmax
++  !     stepg, nbing, ngmax
 +  !
 +  !     fin        :  input file produced by the phonon code
 +  !     fout       :  output file used by the BoltzTraP code
 +  !     job        :  job type determines how to average the matrix elements
-+  !                   - 'egrid' is to average within bins of evenly spaced
-+  !                             energy grids (standard procedure)
++  !                   - 'egrid' is to average within bins of regular energy
++  !                             grids (standard procedure)
 +  !                   - 'bpair' is to average over individual pairs of bands
 +  !                             (obsolete procedure)
-+  !                   - 'gdist' is to construct the histogram for plotting
++  !                   - 'ghist' is to construct the histogram for plotting
 +  !                             a distribution of squared matrix elements
-+  !     ev         :  valence band maximum (in eV)
-+  !     dev        :  grid step of the valence energy grid (in eV)
-+  !     nev        :  number of bins in the valence energy grid
-+  !     bvmin/max  :  subset of valence bands (0/0 for all bands)
-+  !     ec         :  conduction band minimum (in eV)
-+  !     dec        :  grid step of the conduction energy grid (in eV)
-+  !     nec        :  number of bins in the conduction energy grid
-+  !     bcmin/max  :  subset of conduction bands (0/0 for all bands)
-+  !     gmax       :  range of the histogram (in eV^2)
-+  !     ndist      :  number of bins in the histogram
-+  !     nepmax     :  maximum number of elements in one bin of the histogram
++  !     edgev      :  grid edge of the valence energy grid (in eV), set to
++  !                   the valence band maximum
++  !     stepv      :  grid step of the valence energy grid (in eV), set to
++  !                   a small negative value
++  !     nbinv      :  number of bins in the valence energy grid
++  !     ivmin/max  :  range of valence bands (0/0 for all valence bands)
++  !     edgec      :  grid edge of the conduction energy grid (in eV), set to
++  !                   the conduction band minimum
++  !     stepc      :  grid step of the conduction energy grid (in eV), set to
++  !                   a small positive value
++  !     nbinc      :  number of bins in the conduction energy grid
++  !     icmin/max  :  range of conduction bands (0/0 for all conduction bands)
++  !     stepg      :  grid step for the histogram (in eV^2)
++  !     nbing      :  number of bins for the histogram
++  !     ngmax      :  maximum number of elements in one bin of the histogram
 +  !
 +  !  For more details on how to set up the energy grids please refer to
 +  !  online documentation at https://github.com/mir-group/EPA
@@ -414,7 +418,7 @@ diff -ur q-e-qe-6.2.1_original/PHonon/PH/epa.f90 q-e-qe-6.2.1/PHonon/PH/epa.f90
 +  use constants, only : ry_to_cmm1, rytoev, degspin, eps12
 +  implicit none
 +
-+  integer, parameter :: nwin = 2
++  integer, parameter :: ngrid = 2
 +  integer, parameter :: uni = 101
 +  integer, parameter :: uno = 102
 +  real(dp), parameter :: epsw2 = (20_dp / ry_to_cmm1)**2
@@ -423,17 +427,17 @@ diff -ur q-e-qe-6.2.1_original/PHonon/PH/epa.f90 q-e-qe-6.2.1/PHonon/PH/epa.f90
 +  integer :: nmodes, nqs, nspin, nbnd, nkstot, nksqtot, &
 +      nat, nsymq, irotmq, iq, ik, ikk, ikq, ibnd, jbnd, &
 +      nu, mu, vu, ipert, jpert, ii, jj, kk, ll, ijob, &
-+      nev, bvmin, bvmax, nec, bcmin, bcmax, ndist, nepmax, &
-+      nemin, nemax, ne(nwin), nepair(nwin), bpair(2, nwin), &
++      nbinv, ivmin, ivmax, nbinc, icmin, icmax, nbing, ngmax, &
++      nbinmin, nbinmax, nbin(ngrid), nhist(ngrid), bpair(2, ngrid), &
 +      s(3, 3, 48), invs(48)
 +  real(dp) :: wtot, weight, factor, gbuf, gsum, &
-+      gmax, gstep, ev, dev, ec, dec, wspin, &
-+      ee(nwin), de(nwin), xq(3), at(3, 3), bg(3, 3)
++      stepg, edgev, stepv, edgec, stepc, wspin, &
++      edge(ngrid), step(ngrid), xq(3), at(3, 3), bg(3, 3)
 +  character(len=256) :: fin, fout, job, fmt
 +  character(len=32) :: s1, s2, s3, s4, s5
 +
++  real(dp), allocatable :: ghist(:,:,:)
 +  real(dp), allocatable :: gdist(:,:,:)
-+  real(dp), allocatable :: gepair(:,:,:)
 +  real(dp), allocatable :: gavg(:,:,:,:)
 +  real(dp), allocatable :: wavg(:)
 +  real(dp), allocatable :: gtot(:,:,:)
@@ -457,42 +461,42 @@ diff -ur q-e-qe-6.2.1_original/PHonon/PH/epa.f90 q-e-qe-6.2.1/PHonon/PH/epa.f90
 +  read(5, '(a)') fin
 +  read(5, '(a)') fout
 +  read(5, '(a)') job
-+  read(5, *) ev, dev, nev, bvmin, bvmax
-+  read(5, *) ec, dec, nec, bcmin, bcmax
-+  read(5, *) gmax, ndist, nepmax
++  read(5, *) edgev, stepv, nbinv, ivmin, ivmax
++  read(5, *) edgec, stepc, nbinc, icmin, icmax
++  read(5, *) stepg, nbing, ngmax
 +
 +  write(6, '("    input file name: ", a)') trim(fin)
 +  write(6, '("    output file name: ", a)') trim(fout)
 +  write(6, '("    job type: ", a)') trim(job)
-+  write(s1, '(f16.8)') ev
-+  write(s2, '(f16.8)') dev
-+  write(s3, '(i8)') nev
-+  write(s4, '(i8)') bvmin
-+  write(s5, '(i8)') bvmax
-+  write(6, '("    ev = ", a, " eV  dev = ", a, " eV  nev = ", &
-+      a, "  bvmin = ", a, "  bvmax = ", a)') trim(adjustl(s1)), &
++  write(s1, '(f16.8)') edgev
++  write(s2, '(f16.8)') stepv
++  write(s3, '(i8)') nbinv
++  write(s4, '(i8)') ivmin
++  write(s5, '(i8)') ivmax
++  write(6, '("    edgev = ", a, " eV  stepv = ", a, " eV  nbinv = ", &
++      a, "  ivmin = ", a, "  ivmax = ", a)') trim(adjustl(s1)), &
 +      trim(adjustl(s2)), trim(adjustl(s3)), trim(adjustl(s4)), &
 +      trim(adjustl(s5))
-+  write(s1, '(f16.8)') ec
-+  write(s2, '(f16.8)') dec
-+  write(s3, '(i8)') nec
-+  write(s4, '(i8)') bcmin
-+  write(s5, '(i8)') bcmax
-+  write(6, '("    ec = ", a, " eV  dec = ", a, " eV  nec = ", &
-+      a, "  bcmin = ", a, "  bcmax = ", a)') trim(adjustl(s1)), &
++  write(s1, '(f16.8)') edgec
++  write(s2, '(f16.8)') stepc
++  write(s3, '(i8)') nbinc
++  write(s4, '(i8)') icmin
++  write(s5, '(i8)') icmax
++  write(6, '("    edgec = ", a, " eV  stepc = ", a, " eV  nbinc = ", &
++      a, "  icmin = ", a, "  icmax = ", a)') trim(adjustl(s1)), &
 +      trim(adjustl(s2)), trim(adjustl(s3)), trim(adjustl(s4)), &
 +      trim(adjustl(s5))
-+  write(s1, '(f16.8)') gmax
-+  write(s2, '(i8)') ndist
-+  write(s3, '(i8)') nepmax
-+  write(6, '("    gmax = ", a, " eV^2  ndist = ", a, "  nepmax = ", &
++  write(s1, '(f16.8)') stepg
++  write(s2, '(i8)') nbing
++  write(s3, '(i8)') ngmax
++  write(6, '("    stepg = ", a, " eV^2  nbing = ", a, "  ngmax = ", &
 +      a)') trim(adjustl(s1)), trim(adjustl(s2)), trim(adjustl(s3))
 +
 +  if (trim(job) .eq. 'bpair') then
 +    ijob = 1
 +  elseif (trim(job) .eq. 'egrid') then
 +    ijob = 2
-+  elseif (trim(job) .eq. 'gdist') then
++  elseif (trim(job) .eq. 'ghist') then
 +    ijob = 3
 +  else
 +    write(0, '("Error: wrong job type")')
@@ -520,13 +524,13 @@ diff -ur q-e-qe-6.2.1_original/PHonon/PH/epa.f90 q-e-qe-6.2.1/PHonon/PH/epa.f90
 +    wspin = 1.0d0
 +  endif
 +
-+  ee = (/ev, ec/)
-+  de = (/dev, dec/)
-+  ne = (/nev, nec/)
-+  nemin = minval(ne)
-+  nemax = maxval(ne)
-+  bpair = reshape((/bvmin, bvmax, bcmin, bcmax/), shape(bpair))
-+  do ii = 1, nwin
++  edge = (/edgev, edgec/)
++  step = (/stepv, stepc/)
++  nbin = (/nbinv, nbinc/)
++  nbinmin = minval(nbin)
++  nbinmax = maxval(nbin)
++  bpair = reshape((/ivmin, ivmax, icmin, icmax/), shape(bpair))
++  do ii = 1, ngrid
 +    if (bpair(1, ii) .lt. 1 .or. bpair(1, ii) .gt. nbnd) bpair(1, ii) = 1
 +    if (bpair(2, ii) .lt. 1 .or. bpair(2, ii) .gt. nbnd) bpair(2, ii) = nbnd
 +  enddo
@@ -534,28 +538,28 @@ diff -ur q-e-qe-6.2.1_original/PHonon/PH/epa.f90 q-e-qe-6.2.1/PHonon/PH/epa.f90
 +    allocate(gavg(nmodes, nbnd, nbnd, 1))
 +    allocate(gtot(1, 1, 1))
 +  elseif (ijob .eq. 2) then
-+    allocate(gavg(nmodes, nemax, nemax, nwin))
-+    allocate(gtot(nemax, nemax, nwin))
-+    allocate(gnum(nemax, nemax, nwin))
-+    allocate(egrid(2, nwin, nemax))
++    allocate(gavg(nmodes, nbinmax, nbinmax, ngrid))
++    allocate(gtot(nbinmax, nbinmax, ngrid))
++    allocate(gnum(nbinmax, nbinmax, ngrid))
++    allocate(egrid(2, ngrid, nbinmax))
 +  elseif (ijob .eq. 3) then
-+    allocate(gdist(2, ndist, nwin))
-+    allocate(gepair(4, nepmax, nwin))
-+    allocate(egrid(2, nwin, 1))
++    allocate(ghist(2, nbing, ngrid))
++    allocate(gdist(4, ngmax, ngrid))
++    allocate(egrid(2, ngrid, 1))
 +  endif
 +  if (ijob .eq. 1 .or. ijob .eq. 2) then
 +    allocate(wavg(nmodes))
 +  endif
 +  if (ijob .eq. 2 .or. ijob .eq. 3) then
-+    do ii = 1, nwin
-+      egrid(ii, ii, 1) = ee(ii) + de(ii)
-+      egrid(nwin + 1 - ii, ii, 1) = sum(ee) / nwin
++    do ii = 1, ngrid
++      egrid(ii, ii, 1) = edge(ii) + step(ii)
++      egrid(ngrid + 1 - ii, ii, 1) = sum(edge) / ngrid
 +    enddo
-+    if (ijob .eq. 2 .and. nemax .gt. 1) then
-+      do jj = 2, nemax
-+        do ii = 1, nwin
-+          egrid(ii, ii, jj) = ee(ii) + de(ii) * jj
-+          egrid(nwin + 1 - ii, ii, jj) = ee(ii) + de(ii) * (jj - 1)
++    if (ijob .eq. 2 .and. nbinmax .gt. 1) then
++      do jj = 2, nbinmax
++        do ii = 1, ngrid
++          egrid(ii, ii, jj) = edge(ii) + step(ii) * jj
++          egrid(ngrid + 1 - ii, ii, jj) = edge(ii) + step(ii) * (jj - 1)
 +        enddo
 +      enddo
 +    endif
@@ -592,14 +596,13 @@ diff -ur q-e-qe-6.2.1_original/PHonon/PH/epa.f90 q-e-qe-6.2.1/PHonon/PH/epa.f90
 +    gtot(:,:,:) = 0.0d0
 +    wtot = 0.0d0
 +  elseif (ijob .eq. 3) then
-+    gstep = gmax / ndist
-+    do ii = 1, nwin
-+      do jj = 1, ndist
-+        gdist(1, jj, ii) = (jj - 1) * gstep
-+        gdist(2, jj, ii) = 0.0d0
++    do ii = 1, ngrid
++      do jj = 1, nbing
++        ghist(1, jj, ii) = (jj - 1) * stepg
++        ghist(2, jj, ii) = 0.0d0
 +      enddo
 +    enddo
-+    nepair(:) = 0
++    nhist(:) = 0
 +  endif
 +  if (ijob .eq. 2) gnum(:,:,:) = 0
 +  do iq = 1, nqs
@@ -686,9 +689,9 @@ diff -ur q-e-qe-6.2.1_original/PHonon/PH/epa.f90 q-e-qe-6.2.1/PHonon/PH/epa.f90
 +        enddo
 +      enddo
 +    elseif (ijob .eq. 2) then
-+      do ii = 1, nwin
-+        do jj = 1, nemax
-+          do kk = 1, nemax
++      do ii = 1, ngrid
++        do jj = 1, nbinmax
++          do kk = 1, nbinmax
 +            el_ph_sum(:,:) = (0.0d0, 0.0d0)
 +            do ik = 1, nksqtot
 +              ikk = ikks(ik)
@@ -735,7 +738,7 @@ diff -ur q-e-qe-6.2.1_original/PHonon/PH/epa.f90 q-e-qe-6.2.1/PHonon/PH/epa.f90
 +        enddo
 +      enddo
 +    elseif (ijob .eq. 3) then
-+      do ii = 1, nwin
++      do ii = 1, ngrid
 +        do ik = 1, nksqtot
 +          ikk = ikks(ik)
 +          ikq = ikqs(ik)
@@ -771,15 +774,15 @@ diff -ur q-e-qe-6.2.1_original/PHonon/PH/epa.f90 q-e-qe-6.2.1/PHonon/PH/epa.f90
 +                    enddo
 +                    gsum = gsum + gbuf * factor
 +                  enddo
-+                  jj = nint(abs(gsum) / gstep)
-+                  if (jj .ge. 1 .and. jj .le. ndist) then
-+                    gdist(2, jj, ii) = gdist(2, jj, ii) + weight / gstep
++                  jj = nint(abs(gsum) / stepg)
++                  if (jj .ge. 1 .and. jj .le. nbing) then
++                    ghist(2, jj, ii) = ghist(2, jj, ii) + weight / stepg
 +                  endif
-+                  nepair(ii) = nepair(ii) + 1
-+                  gepair(1, nepair(ii), ii) = et(ibnd, ikk) * rytoev - ee(ii)
-+                  gepair(2, nepair(ii), ii) = et(jbnd, ikq) * rytoev - ee(ii)
-+                  gepair(3, nepair(ii), ii) = gsum
-+                  gepair(4, nepair(ii), ii) = weight
++                  nhist(ii) = nhist(ii) + 1
++                  gdist(1, nhist(ii), ii) = et(ibnd, ikk) * rytoev - edge(ii)
++                  gdist(2, nhist(ii), ii) = et(jbnd, ikq) * rytoev - edge(ii)
++                  gdist(3, nhist(ii), ii) = gsum
++                  gdist(4, nhist(ii), ii) = weight
 +                endif
 +              enddo
 +            endif
@@ -815,9 +818,9 @@ diff -ur q-e-qe-6.2.1_original/PHonon/PH/epa.f90 q-e-qe-6.2.1/PHonon/PH/epa.f90
 +      enddo
 +    enddo
 +  elseif (ijob .eq. 2) then
-+    do ii = 1, nwin
-+      do jj = 1, nemax
-+        do kk = 1, nemax
++    do ii = 1, ngrid
++      do jj = 1, nbinmax
++        do kk = 1, nbinmax
 +          if (gtot(kk, jj, ii) .gt. eps12) then
 +            do nu = 1, nmodes
 +              gavg(nu, kk, jj, ii) = gavg(nu, kk, jj, ii) / gtot(kk, jj, ii)
@@ -837,14 +840,14 @@ diff -ur q-e-qe-6.2.1_original/PHonon/PH/epa.f90 q-e-qe-6.2.1/PHonon/PH/epa.f90
 +  if (ijob .eq. 2) then
 +    write(fmt, '("(", i0, "(5x, ""e"", a, "" (eV)"", 4x, ""e"", a, ""''", &
 +        " (eV)"", 3x, ""<|g"", a, ""|^2> (eV^2)"", 2x, ""count"", a, 5x,", &
-+        " ""weight"", a))")') nwin
++        " ""weight"", a))")') ngrid
 +    write(6, fmt) ('v', ll = 1, 5), ('c', ll = 1, 5)
-+    write(fmt, '("(", i0, "(2f12.6, e18.8, i8, f12.6))")') nwin
-+    do jj = 1, nemin
-+      do kk = 1, nemin
-+        write(6, fmt) ((jj - 0.5d0) * de(ii), (kk - 0.5d0) * de(ii), &
++    write(fmt, '("(", i0, "(2f12.6, e18.8, i8, f12.6))")') ngrid
++    do jj = 1, nbinmin
++      do kk = 1, nbinmin
++        write(6, fmt) ((jj - 0.5d0) * step(ii), (kk - 0.5d0) * step(ii), &
 +            sum(gavg(:, kk, jj, ii)), gnum(kk, jj, ii), gtot(kk, jj, ii), &
-+            ii = 1, nwin)
++            ii = 1, ngrid)
 +      enddo
 +    enddo
 +  endif
@@ -868,31 +871,31 @@ diff -ur q-e-qe-6.2.1_original/PHonon/PH/epa.f90 q-e-qe-6.2.1/PHonon/PH/epa.f90
 +      enddo
 +    enddo
 +  elseif (ijob .eq. 2) then
-+    write(uno, '(2i8)') nwin, nmodes
-+    do ii = 1, nwin
-+      write(uno, '(2f14.8, i8)') ee(ii), de(ii), ne(ii)
++    write(uno, '(2i8)') ngrid, nmodes
++    do ii = 1, ngrid
++      write(uno, '(2f14.8, i8)') edge(ii), step(ii), nbin(ii)
 +    enddo
 +    write(fmt, '("(", i0, "e18.8)")') nmodes
 +    write(uno, fmt) (wavg(nu), nu = 1, nmodes)
 +    write(fmt, '("(3i8, ", i0, "e18.8)")') nmodes
-+    do ii = 1, nwin
-+      do jj = 1, ne(ii)
-+        do kk = 1, ne(ii)
++    do ii = 1, ngrid
++      do jj = 1, nbin(ii)
++        do kk = 1, nbin(ii)
 +          write(uno, fmt) ii, jj, kk, (gavg(nu, kk, jj, ii), &
 +              nu = 1, nmodes)
 +        enddo
 +      enddo
 +    enddo
 +  elseif (ijob .eq. 3) then
-+    write(uno, '(i8)') ndist
-+    do jj = 1, ndist
-+      write(uno, '(f14.8, 2e18.8)') gdist(1, jj, 1), gdist(2, jj, 1), &
-+          gdist(2, jj, 2)
++    write(uno, '(i8)') nbing
++    do jj = 1, nbing
++      write(uno, '(f14.8, 2e18.8)') ghist(1, jj, 1), ghist(2, jj, 1), &
++          ghist(2, jj, 2)
 +    enddo
-+    write(uno, '(i8)') (nepair(ii), ii = 1, nwin)
-+    do ii = 1, nwin
-+      do jj = 1, nepair(ii)
-+        write(uno, '(2f14.8, 2e18.8)') (gepair(kk, jj, ii), kk = 1, 4)
++    write(uno, '(i8)') (nhist(ii), ii = 1, ngrid)
++    do ii = 1, ngrid
++      do jj = 1, nhist(ii)
++        write(uno, '(2f14.8, 2e18.8)') (gdist(kk, jj, ii), kk = 1, 4)
 +      enddo
 +    enddo
 +  endif
@@ -905,8 +908,8 @@ diff -ur q-e-qe-6.2.1_original/PHonon/PH/epa.f90 q-e-qe-6.2.1/PHonon/PH/epa.f90
 +  endif
 +  if (ijob .eq. 2) deallocate(gnum)
 +  if (ijob .eq. 3) then
++    deallocate(ghist)
 +    deallocate(gdist)
-+    deallocate(gepair)
 +  endif
 +  if (ijob .eq. 2 .or. ijob .eq. 3) deallocate(egrid)
 +  deallocate(x_q)
@@ -922,8 +925,8 @@ diff -ur q-e-qe-6.2.1_original/PHonon/PH/epa.f90 q-e-qe-6.2.1/PHonon/PH/epa.f90
 +!
 +!----------------------------------------------------------------------------
 diff -ur q-e-qe-6.2.1_original/PHonon/PH/Makefile q-e-qe-6.2.1/PHonon/PH/Makefile
---- q-e-qe-6.2.1_original/PHonon/PH/Makefile	2020-01-25 09:37:54.895160256 -0800
-+++ q-e-qe-6.2.1/PHonon/PH/Makefile	2020-01-25 09:38:58.799093623 -0800
+--- q-e-qe-6.2.1_original/PHonon/PH/Makefile	2020-01-26 17:14:58.806366754 -0800
++++ q-e-qe-6.2.1/PHonon/PH/Makefile	2020-01-26 17:15:25.147531841 -0800
 @@ -192,7 +192,7 @@
  TLDEPS= bindir mods libs pw-lib lrmods
  
@@ -946,8 +949,8 @@ diff -ur q-e-qe-6.2.1_original/PHonon/PH/Makefile q-e-qe-6.2.1/PHonon/PH/Makefil
  #	$(MPIF90) $(FFLAGS_NOOPT) -c fqha.f90
  
 diff -ur q-e-qe-6.2.1_original/PHonon/PH/phq_readin.f90 q-e-qe-6.2.1/PHonon/PH/phq_readin.f90
---- q-e-qe-6.2.1_original/PHonon/PH/phq_readin.f90	2020-01-25 09:37:54.899162255 -0800
-+++ q-e-qe-6.2.1/PHonon/PH/phq_readin.f90	2020-01-25 09:38:58.799093623 -0800
+--- q-e-qe-6.2.1_original/PHonon/PH/phq_readin.f90	2020-01-26 17:14:58.810368754 -0800
++++ q-e-qe-6.2.1/PHonon/PH/phq_readin.f90	2020-01-26 17:15:25.147531841 -0800
 @@ -68,7 +68,7 @@
    USE cryst_ph,      ONLY : magnetic_sym
    USE ph_restart,    ONLY : ph_readfile
@@ -1004,8 +1007,8 @@ diff -ur q-e-qe-6.2.1_original/PHonon/PH/phq_readin.f90 q-e-qe-6.2.1/PHonon/PH/p
    ! YAMBO >
    IF (.not.elph_yambo) then
 diff -ur q-e-qe-6.2.1_original/PHonon/PH/q_points.f90 q-e-qe-6.2.1/PHonon/PH/q_points.f90
---- q-e-qe-6.2.1_original/PHonon/PH/q_points.f90	2020-01-25 09:37:54.899162255 -0800
-+++ q-e-qe-6.2.1/PHonon/PH/q_points.f90	2020-01-25 09:38:58.803095623 -0800
+--- q-e-qe-6.2.1_original/PHonon/PH/q_points.f90	2020-01-26 17:14:58.810368754 -0800
++++ q-e-qe-6.2.1/PHonon/PH/q_points.f90	2020-01-26 17:15:25.147531841 -0800
 @@ -11,7 +11,7 @@
  
    USE kinds, only : dp

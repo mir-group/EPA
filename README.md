@@ -17,25 +17,25 @@ There are two examples, silicon and half-Heusler HfCoSb (from the paper above), 
 
 Format of the input file 'silicon.epa.in' for **epa.x**:
 
-| Content                | Description                                                                                                                               |
-|------------------------|-------------------------------------------------------------------------------------------------------------------------------------------|
-| `silicon.epa.k`        | input data used by **epa.x** (contains electron-phonon matrix elements in momentum-space, produced by **ph.x**)                           |
-| `silicon.epa.e`        | output data produced by **epa.x** (contains electron-phonon matrix elements in energy-space, used by **BoltzTraP**)                       |
-| `egrid`                | job type, 'egrid' for the standard EPA averaging procedure from momentum to energy space                                                  |
-| `6.146000 -0.4 10 0 0` | VBM energy in eV, grid step in eV (negative because downwards from the VBM), number of bins, subset of valence bands (0 0 for all bands)  |
-| `6.602500 0.4 10 0 0`  | CBM energy in eV, grid step in eV (positive because updards from the CBM), number of bins, subset of conduction bands (0 0 for all bands) |
-| `0.0 0 0`              | parameters used by job type 'gdist' which constructs the histogram for plotting a distribution of squared matrix elements                 |
+| Content                | Description                                                                                                                                               |
+|------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `silicon.epa.k`        | input data used by **epa.x** (contains electron-phonon matrix elements in momentum-space, produced by **ph.x**)                                           |
+| `silicon.epa.e`        | output data produced by **epa.x** (contains electron-phonon matrix elements in energy-space, used by **BoltzTraP**)                                       |
+| `egrid`                | job type, 'egrid' for the standard EPA averaging procedure from momentum to energy space                                                                  |
+| `6.146000 -0.4 10 0 0` | valence energy grid edge (VBM energy), grid step (negative = downwards from VBM), number of bins, range of valence bands (0 0 = all valence bands)        |
+| `6.602500 0.4 10 0 0`  | conduction energy grid edge (CBM energy), grid step (positive = updards from CBM), number of bins, range of conduction bands (0 0 = all conduction bands) |
+| `0.0 0 0`              | parameters used by job type 'gdist' which constructs the histogram for plotting a distribution of squared matrix elements                                 |
 
-Both the valence and conduction energy grids consist of 10 bins of 0.4 eV width (these may be different for the two grids). The valence energy grid extends 4 eV below the VBM (valence band maximum) and the conduction energy grid extends 4 eV above the CBM (conduction band minimum).
+Both valence and conduction energy grids consist of 10 bins of 0.4 eV width (these could be different for the two grids). The valence energy grid extends 4 eV below the VBM (valence band maximum) and the conduction energy grid extends 4 eV above the CBM (conduction band minimum). All energies are in eV. 
 
 Transitions between the valence and conduction energy grids are not implemented, there are only valence-to-valence and conduction-to-conduction transitions. This is only valid if the band gap is larger than the highest phonon energy.
 
 In case of a metal or a narrow-gap semiconductor, one can define a single energy grid that spans both valence and conduction bands. For example, if the Fermi level is at 5 eV, the energy grids can be set as follows:
 
-| Content                | Description                                                                                                                               |
-|------------------------|-------------------------------------------------------------------------------------------------------------------------------------------|
-| `-5.0 -10.0 1 0 0`     | valence energy grid is far below the Fermi level and is not functional                                                                    |
-| `2.0 0.5 12 0 0`       | conduction energy grid spans the range from 2 eV to 8 eV, that is, 3 eV below and 3 eV above the Fermi level                              |
+| Content                | Description                                                                                                                                               |
+|------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `2.0 -10.0 1 0 0`     | valence energy grid is 3 eV below the Fermi level and is not functional                                                                                    |
+| `2.0 0.5 12 0 0`       | conduction energy grid spans the range from 2 eV to 8 eV, that is, from 3 eV below the Fermi level to 3 eV above the Fermi level                          |
 
 ## Energy grids
 
