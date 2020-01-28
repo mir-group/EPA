@@ -62,8 +62,11 @@ diff -ur boltztrap-1.2.5_original/src/fermiintegrals.F90 boltztrap-1.2.5/src/fer
  &        "                                    kappa0(x,x')"
    WRITE(un_ht,'(a)') "#       Ef[Ry] T [K]            N         27 Hall coefficients"
  
++! Read parameters of the EPA approximation from a file
 +!
-+!-epa-1-begin
++! The electron-phonon averaged (EPA) approximation is described in
++! G. Samsonidze & B. Kozinsky, Adv. Energy Mater. 2018, 1800246
++! doi:10.1002/aenm.201800246 arXiv:1511.08115
 +!
 +  READ(unepa, *, iostat = iepa) ngrid, nmodes
 +  IF (iepa == 0) THEN
@@ -95,9 +98,6 @@ diff -ur boltztrap-1.2.5_original/src/fermiintegrals.F90 boltztrap-1.2.5/src/fer
 +  ENDIF
 +
 +  READ(unke0j, *, iostat = ike0j) kappaelzeroj
-+!
-+!-epa-1-end
-+!
 +
  ! set up fermi spline object
  !  argmin = (ebmin-ebmax)/deltat ! force set to -40
@@ -177,8 +177,11 @@ diff -ur boltztrap-1.2.5_original/src/fermiintegrals.F90 boltztrap-1.2.5/src/fer
          &           * taureffact)) )
      end if
  
++! Compute the electron relaxation time within the EPA approximation
 +!
-+!-epa-2-begin
++! The electron-phonon averaged (EPA) approximation is described in
++! G. Samsonidze & B. Kozinsky, Adv. Energy Mater. 2018, 1800246
++! doi:10.1002/aenm.201800246 arXiv:1511.08115
 +!
 +    if (iepa == 0) then
 +      kt = temp * BOLTZMANN ! convert T from K to Ha
@@ -234,9 +237,6 @@ diff -ur boltztrap-1.2.5_original/src/fermiintegrals.F90 boltztrap-1.2.5/src/fer
 +        lifetime = 0.0d0
 +      endif
 +    endif
-+!
-+!-epa-2-end
-+!
 +
      factor1=fermi(ene,efermi,temp)*spinorbit
      factor2=dfermide(ene,efermi,temp)*spinorbit
@@ -246,11 +246,14 @@ diff -ur boltztrap-1.2.5_original/src/fermiintegrals.F90 boltztrap-1.2.5/src/fer
      ENDDO
      thermal(1:3,1:3)=kappa(1:3,1:3)
 +
++! Compute kappael at zero electric current according to Eq. (18) of
++! G.K.H. Madsen & D.J. Singh, Comput. Phys. Commun. 175, 67 (2006)
++! doi:10.1016/j.cpc.2006.03.007
 +!
-+!-epa-3-begin
-+!
-+! use this for anisotropic systems
-+! for isotropic systems you can use ( kappael = kappa0 - sigma S^2 T ) instead
++! This is generic formula suitable for anisotropic systems.
++! For isotropic systems you can compute it as follows:
++!     kappael = kappa0 - s S^2 T
++! using data from case.trace file.
 +!
 +    IF (kappaelzeroj) THEN
 +       DO i=1,3
@@ -263,9 +266,6 @@ diff -ur boltztrap-1.2.5_original/src/fermiintegrals.F90 boltztrap-1.2.5/src/fer
 +          ENDDO
 +       ENDDO
 +    ENDIF
-+!
-+!-epa-3-end
-+!
 +
      hall(1:3,1:3,1:3)=ZERO
      DO i=1,3

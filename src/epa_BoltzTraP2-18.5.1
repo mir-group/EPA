@@ -25,7 +25,7 @@ diff -ur BoltzTraP2-18.5.1_original/BoltzTraP2/bandlib.py BoltzTraP2-18.5.1/Bolt
 +        scattering_model: model to be used for the electron lifetimes. This is
 +            identical to scattering_model in BTPDOS except that here the model
 +            can be mu- and T-dependent. The following choices are available:
-+                - "epa": EPA (electron-phonon-averaged) approximation
++                - "epa": EPA (electron-phonon averaged) approximation
 +        scattering_file: name of file containing parameters of the scattering
 +            model
  
@@ -79,16 +79,16 @@ diff -ur BoltzTraP2-18.5.1_original/BoltzTraP2/bandlib.py BoltzTraP2-18.5.1/Bolt
 +def epa_init(epa_file=None):
 +    """Read parameters of the EPA approximation from a file.
 +
-+    EPA (electron-phonon-averaged) approximation
-+    Adv. Energy Mater. 2018, 1800246
-+    doi:10.1002/aenm.201800246
-+    https://doi.org/10.1002/aenm.201800246
-+
 +    Args:
 +        epa_file: name of file containing the EPA parameters.
 +
 +    Returns:
 +        epa_params: list of EPA parameters.
++
++    The electron-phonon averaged (EPA) approximation is described in
++    G. Samsonidze & B. Kozinsky, Adv. Energy Mater. 2018, 1800246
++    doi:10.1002/aenm.201800246
++    arXiv:1511.08115
 +    """
 +    with open(epa_file, 'rb') as ff:
 +        tt = ff.readline().split()
@@ -117,11 +117,6 @@ diff -ur BoltzTraP2-18.5.1_original/BoltzTraP2/bandlib.py BoltzTraP2-18.5.1/Bolt
 +def epa_calc(mu, kBT, en, epsilon, dos, epa_params):
 +    """Compute the electron relaxation time within the EPA approximation.
 +
-+    EPA (electron-phonon-averaged) approximation
-+    Adv. Energy Mater. 2018, 1800246
-+    doi:10.1002/aenm.201800246
-+    https://doi.org/10.1002/aenm.201800246
-+
 +    Args:
 +        mu: chemical potential.
 +        kBT: temperature.
@@ -132,6 +127,11 @@ diff -ur BoltzTraP2-18.5.1_original/BoltzTraP2/bandlib.py BoltzTraP2-18.5.1/Bolt
 +
 +    Returns:
 +        tau: electron relaxation time, in seconds, same shape as en.
++
++    The electron-phonon averaged (EPA) approximation is described in
++    G. Samsonidze & B. Kozinsky, Adv. Energy Mater. 2018, 1800246
++    doi:10.1002/aenm.201800246
++    arXiv:1511.08115
 +    """
 +    ngrid, nmode, nbinmax, edge, step, nbin, wavg, gavg = epa_params
 +

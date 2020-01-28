@@ -1,6 +1,6 @@
 # Electron-Phonon Averaged (EPA) Approximation
 
-The electron-phonon averaged (EPA) Approximation is described in [Adv. Energy Mater. 2018, 1800246](https://doi.org/10.1002/aenm.201800246) and [arXiv:1511.08115](https://arxiv.org/abs/1511.08115).
+The electron-phonon averaged (EPA) approximation is described in [Adv. Energy Mater. 2018, 1800246](https://doi.org/10.1002/aenm.201800246) and [arXiv:1511.08115](https://arxiv.org/abs/1511.08115).
 
 There are two examples, silicon and half-Heusler HfCoSb (from the paper above), containing all the input and output files (output files are gzipped). Each example has two job submission scripts, **submit1.sh** and **submit2.sh**, which follow the same computational workflow (see below). There are several python scripts called from **submit2.sh**, they require python package BRAVE to convert QE output to BoltzTraP input. Please contact EPA developers to obtain a copy of BRAVE as it has not yet been open sourced. Alternatively, this conversion can be performed using python script **qe2boltz.py** included in boltztrap-1.2.5.
 
@@ -37,7 +37,7 @@ In case of a metal or a narrow-gap semiconductor, one can define a single energy
 | `2.0 -10.0 1 0 0`     | valence energy grid is 3 eV below the Fermi level and is not functional                                                                                    |
 | `2.0 0.5 12 0 0`       | conduction energy grid spans the range from 2 eV to 8 eV, that is, from 3 eV below the Fermi level to 3 eV above the Fermi level                          |
 
-## Energy grids
+## Energy Grids
 
 The extents of valence and conduction energy grids are determined by the range of Fermi levels for which one needs to compute the transport properties. Let's say the Fermi level spans from 1 eV below the VBM to 0.5 eV above the CBM. Then the valence and conduction energy grids have to cover that range, plus the largest phonon energy (because the electron energy can change by as much as the largest phonon energy during the electron-phonon scattering, so all electrons in that energy range will contribute to the transport properties). Extending the energy grids outside of that range won't have any effect on the transport properties (since it doesn't affect the electronic transitions in the selected range of Fermi energies). Let's say the largest phonon energy is 0.2 eV, then the energy grids have to cover the range from 1.2 eV below the VBM to 0.7 eV above the CBM. If the grid steps are set to 0.1 eV for both grids, this requires 12 bins in the valence energy grid and 7 bins in the conduction energy grid. If the grid steps are increased to 0.2 eV, the numbers of bins can be decreased to 6 and 4, respectively.
 
