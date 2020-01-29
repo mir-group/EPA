@@ -87,8 +87,7 @@ diff -ur BoltzTraP2-18.5.1_original/BoltzTraP2/bandlib.py BoltzTraP2-18.5.1/Bolt
 +
 +    The electron-phonon averaged (EPA) approximation is described in
 +    G. Samsonidze & B. Kozinsky, Adv. Energy Mater. 2018, 1800246
-+    doi:10.1002/aenm.201800246
-+    arXiv:1511.08115
++    doi:10.1002/aenm.201800246 arXiv:1511.08115
 +    """
 +    with open(epa_file, 'rb') as ff:
 +        tt = ff.readline().split()
@@ -112,6 +111,7 @@ diff -ur BoltzTraP2-18.5.1_original/BoltzTraP2/bandlib.py BoltzTraP2-18.5.1/Bolt
 +        wavg *= 100 * 2 * math.pi * hbar_SI / qe_SI * Clight_SI
 +        edge, step, wavg, gavg = (xx * eV for xx in (edge, step, wavg, gavg))
 +        epa_params = [ngrid, nmode, nbinmax, edge, step, nbin, wavg, gavg]
++
 +        return epa_params
 +
 +def epa_calc(mu, kBT, en, epsilon, dos, epa_params):
@@ -130,8 +130,7 @@ diff -ur BoltzTraP2-18.5.1_original/BoltzTraP2/bandlib.py BoltzTraP2-18.5.1/Bolt
 +
 +    The electron-phonon averaged (EPA) approximation is described in
 +    G. Samsonidze & B. Kozinsky, Adv. Energy Mater. 2018, 1800246
-+    doi:10.1002/aenm.201800246
-+    arXiv:1511.08115
++    doi:10.1002/aenm.201800246 arXiv:1511.08115
 +    """
 +    ngrid, nmode, nbinmax, edge, step, nbin, wavg, gavg = epa_params
 +
@@ -177,4 +176,5 @@ diff -ur BoltzTraP2-18.5.1_original/BoltzTraP2/bandlib.py BoltzTraP2-18.5.1/Bolt
 +
 +    invtau *= 2 * math.pi * qe_SI / hbar_SI
 +    tau = np.divide(1.0, np.maximum(invtau, 1e9))
++
 +    return tau
