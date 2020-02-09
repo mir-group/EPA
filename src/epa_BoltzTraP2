@@ -1,7 +1,7 @@
-diff -ur BoltzTraP2-18.5.1_original/BoltzTraP2/bandlib.py BoltzTraP2-18.5.1/BoltzTraP2/bandlib.py
---- BoltzTraP2-18.5.1_original/BoltzTraP2/bandlib.py	2018-06-18 13:57:11.099952000 -0700
-+++ BoltzTraP2-18.5.1/BoltzTraP2/bandlib.py	2018-06-19 09:19:43.994369000 -0700
-@@ -366,7 +366,15 @@
+diff -ur BoltzTraP2_original/BoltzTraP2/bandlib.py BoltzTraP2/BoltzTraP2/bandlib.py
+--- BoltzTraP2_original/BoltzTraP2/bandlib.py	2020-02-09 10:57:33.905667000 -0800
++++ BoltzTraP2/BoltzTraP2/bandlib.py	2020-02-09 10:58:38.479068674 -0800
+@@ -380,7 +380,15 @@
      return BOLTZMANN_SI * nruter
  
  
@@ -18,7 +18,7 @@ diff -ur BoltzTraP2-18.5.1_original/BoltzTraP2/bandlib.py BoltzTraP2-18.5.1/Bolt
      """Compute the moments of the FD distribution over the band structure.
  
      Args:
-@@ -377,6 +385,12 @@
+@@ -391,6 +399,12 @@
          Tr: array of temperature values
          dosweight: maximum occupancy of an electron mode
          cdos: "curvature DOS" if available
@@ -31,7 +31,7 @@ diff -ur BoltzTraP2-18.5.1_original/BoltzTraP2/bandlib.py BoltzTraP2-18.5.1/Bolt
  
      Returns:
          Five numpy arrays, namely:
-@@ -393,6 +407,8 @@
+@@ -407,6 +421,8 @@
             taking the occupancies into account.
          where nT and nmu are the sizes of Tr and mur, respectively.
      """
@@ -40,7 +40,7 @@ diff -ur BoltzTraP2-18.5.1_original/BoltzTraP2/bandlib.py BoltzTraP2-18.5.1/Bolt
      kBTr = np.array(Tr) * BOLTZMANN
      iu0 = np.triu_indices(3)
      ido = np.tril_indices(3, -1)
-@@ -410,16 +426,27 @@
+@@ -424,16 +440,27 @@
      de = epsilon[1] - epsilon[0]
      for iT, kBT in enumerate(kBTr):
          for imu, mu in enumerate(mur):
@@ -71,10 +71,11 @@ diff -ur BoltzTraP2-18.5.1_original/BoltzTraP2/bandlib.py BoltzTraP2-18.5.1/Bolt
                  L11[iT, imu] = -cint.sum(axis=3) * de
      return N, L0, L1, L2, L11
  
-@@ -486,3 +513,106 @@
-                     Hall_[:, :, k] = pL11 @ L111[iT, imu, :, :, k] @ pL11
-                 Hall[iT, imu] = Hall_
-     return (L11, seebeck, kappa, Hall)
+@@ -555,3 +582,108 @@
+     nruter = eband.copy()
+     nruter[conduction_mask, :] += delta
+     return nruter
++
 +
 +def epa_init(epa_file=None):
 +    """Read parameters of the EPA approximation from a file.
@@ -113,6 +114,7 @@ diff -ur BoltzTraP2-18.5.1_original/BoltzTraP2/bandlib.py BoltzTraP2-18.5.1/Bolt
 +        epa_params = [ngrid, nmode, nbinmax, edge, step, nbin, wavg, gavg]
 +
 +        return epa_params
++
 +
 +def epa_calc(mu, kBT, en, epsilon, dos, epa_params):
 +    """Compute the electron relaxation time within the EPA approximation.
