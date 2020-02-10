@@ -2,7 +2,7 @@
 
 The electron-phonon averaged (EPA) approximation is described in [Adv. Energy Mater. 2018, 1800246](https://doi.org/10.1002/aenm.201800246) and [arXiv:1511.08115](https://arxiv.org/abs/1511.08115).
 
-There are two examples, silicon and half-Heusler HfCoSb (from the paper above), containing all the input and output files (output files are gzipped). Each example has two job submission scripts, **submit1.sh** and **submit2.sh**, which follow the same computational workflow (see below). There are several python scripts called from **submit2.sh**, they require python package BRAVE to convert QE output to BoltzTraP input. Please contact EPA developers to obtain a copy of BRAVE as it has not yet been open sourced. Alternatively, this conversion can be performed using python script **qe2boltz.py** included in boltztrap-1.2.5.
+There are two examples, silicon and half-Heusler HfCoSb (from the paper above), containing all the input and output files (output files are gzipped). Each example has two job submission scripts, **submit1.sh** and **submit2.sh**, which follow the same computational workflow (see below). There are several python scripts called from **submit2.sh**, they require python package [BRAVE](https://github.com/mir-group/BRAVE) to convert QE output to BoltzTraP input. Alternatively, this conversion can be performed using python script **qe2boltz.py** included in boltztrap-1.2.5.
 
 ## Workflow
 
