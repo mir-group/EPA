@@ -2,11 +2,11 @@
 
 ### Input files
 
-| File name          | Origin                           | Modification                     |
-|--------------------|----------------------------------|----------------------------------|
-| **silicon.struct** | **../silicon/silicon.structure** | Substantial                      |
-| **silicon.energy** | **../silicon/silicon.energy**    | Added nspin & efermi in 2nd line |
-| **silicon.epa.e**  | **../silicon/silicon.epa.e**     | None                             |
+| File name             | Origin                        | Modification                     |
+|-----------------------|-------------------------------|----------------------------------|
+| **silicon.structure** | **../silicon/silicon.struct** | Substantial                      |
+| **silicon.energy**    | **../silicon/silicon.energy** | Added nspin & efermi in 2nd line |
+| **silicon.epa.e**     | **../silicon/silicon.epa.e**  | None                             |
 
 ### Output files
 
