@@ -12,7 +12,7 @@ f5 = '{0:s}_tau.{1:s}'.format(name, ext)
 title = '{0:s}    ${1:s} = {2:.2f}$    $T = {3:d}^\circ$C'
 mode = [r'$\tau = {0:d}$ fs' , 'EPA']
 tauvc = None
-kappaelzeroj = True
+kappaelzeroj = False
 numelec = -0.06
 T_C = 400.0
 T_C2K = 273.15
