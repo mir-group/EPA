@@ -2,7 +2,7 @@ HfCoSb phonons k=888000 q=888000
 &inputph
    prefix = 'HfCoSb'
    outdir = '.'
-   reduce_io = .false.
+   reduce_io = .true.
    tr2_ph = 1.0d-25
    niter_ph = 500
    alpha_mix(1) = 0.3d0

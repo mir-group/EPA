@@ -7,8 +7,8 @@ unset FORT_BUFFERCOUNT
 
 NPOOL=20
 MPI="mpirun"
-PW="q-e-qe-6.6/bin/pw.x"
-PH="q-e-qe-6.6/bin/ph.x"
+PW="q-e-qe-6.8/bin/pw.x"
+PH="q-e-qe-6.8/bin/ph.x"
 
 $MPI $PW -npool $NPOOL < HfCoSb.scf.in > HfCoSb.scf.out
 $MPI $PH -npool $NPOOL < HfCoSb.ph1.in > HfCoSb.ph1.out

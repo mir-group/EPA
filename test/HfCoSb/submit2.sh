@@ -1,6 +1,6 @@
 #!/bin/bash
 
-EPA="q-e-qe-6.6/bin/epa.x"
+EPA="q-e-qe-6.8/bin/epa.x"
 PYTHON="python3"
 BOLTZTRAP="boltztrap-1.2.5/src/BoltzTraP"
 
