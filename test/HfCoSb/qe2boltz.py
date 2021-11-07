@@ -15,7 +15,7 @@ ss = '{0:s}  nelec = {1:.2f}  evbm = {2:.6f}  ecbm = {3:.6f}  egap = {4:.6f}  ef
 print(ss)
 
 # For metals, don't mess with the Fermi level
-#ss = '{0:s}  nelec = {1:.2f}  efermi = {2:.6f}'.format(name, bnd.nelec, bnd.efermi))
+#ss = '{0:s}  nelec = {1:.2f}  efermi = {2:.6f}'.format(name, bnd.nelec, bnd.efermi)
 #print(ss)
 
 bnd.write('boltztrap-in', f2)
