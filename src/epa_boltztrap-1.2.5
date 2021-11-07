@@ -1,6 +1,6 @@
 diff -ur boltztrap-1.2.5_original/src/BoltzTraP.F90 boltztrap-1.2.5/src/BoltzTraP.F90
---- boltztrap-1.2.5_original/src/BoltzTraP.F90	2020-02-10 06:16:27.108207000 -0800
-+++ boltztrap-1.2.5/src/BoltzTraP.F90	2020-02-10 06:16:38.547493017 -0800
+--- boltztrap-1.2.5_original/src/BoltzTraP.F90	2013-11-20 10:29:02.000000000 -0800
++++ boltztrap-1.2.5/src/BoltzTraP.F90	2021-11-07 05:37:29.222193161 -0800
 @@ -75,6 +75,9 @@
    integer :: un_phdosxy  = 53
    integer :: un_phdosxyz = 54
@@ -29,8 +29,8 @@ diff -ur boltztrap-1.2.5_original/src/BoltzTraP.F90 boltztrap-1.2.5/src/BoltzTra
       write (6,*) 'Calling BoseIntegrals for thermal transport'
       call boseintegrals(cell, fradix, un_phdos, un_phdosxy, un_phdosxyz)
 diff -ur boltztrap-1.2.5_original/src/fermiintegrals.F90 boltztrap-1.2.5/src/fermiintegrals.F90
---- boltztrap-1.2.5_original/src/fermiintegrals.F90	2020-02-10 06:16:27.103639000 -0800
-+++ boltztrap-1.2.5/src/fermiintegrals.F90	2020-02-10 06:49:21.838413051 -0800
+--- boltztrap-1.2.5_original/src/fermiintegrals.F90	2013-11-20 09:21:58.000000000 -0800
++++ boltztrap-1.2.5/src/fermiintegrals.F90	2021-11-07 05:38:29.882584331 -0800
 @@ -1,4 +1,4 @@
 -SUBROUTINE fermiintegrals(cell, spinorbit,icut1,vbm,cbm, fradix, un, unxy, unxyz)
 +SUBROUTINE fermiintegrals(cell, spinorbit,icut1,vbm,cbm, fradix, un, unxy, unxyz, unepa, unke0j)
@@ -58,7 +58,7 @@ diff -ur boltztrap-1.2.5_original/src/fermiintegrals.F90 boltztrap-1.2.5/src/fer
    type(fermispl_type) :: splobj
    integer :: nspl
  
-@@ -88,6 +93,49 @@
+@@ -88,6 +93,54 @@
  &        "                                    kappa0(x,x')"
    WRITE(un_ht,'(a)') "#       Ef[Ry] T [K]            N         27 Hall coefficients"
  
@@ -88,6 +88,11 @@ diff -ur boltztrap-1.2.5_original/src/fermiintegrals.F90 boltztrap-1.2.5/src/fer
 +      enddo
 +    enddo
 +
++    ! avoid the infrared divergence of the Bose-Einstein distribution
++    do ll = 1, nmodes
++      wavg(ll) = max(wavg(ll), sqrt(2.0d1))
++    enddo
++
 +    ! convert edge & step from eV to Ha
 +    edge(:) = edge(:) * EV
 +    step(:) = step(:) * EV
@@ -108,7 +113,7 @@ diff -ur boltztrap-1.2.5_original/src/fermiintegrals.F90 boltztrap-1.2.5/src/fer
  ! set up fermi spline object
  !  argmin = (ebmin-ebmax)/deltat ! force set to -40
  !  argmax = (ebmax-ebmin)/deltat ! force set to +40
-@@ -118,7 +166,8 @@
+@@ -118,7 +171,8 @@
       DO it=1,itmax
          temp=it*deltat
          call fermiint_fix_ef_T(cell%volume, efermi, deltaef, ebmin, temp, &
@@ -118,7 +123,7 @@ diff -ur boltztrap-1.2.5_original/src/fermiintegrals.F90 boltztrap-1.2.5/src/fer
       ENDDO
    ENDDO
  
-@@ -183,7 +232,8 @@
+@@ -183,7 +237,8 @@
        end if
  
        call fermiint_fix_ef_T(cell%volume, efermi, deltaef, ebmin,  temp, &
@@ -128,7 +133,7 @@ diff -ur boltztrap-1.2.5_original/src/fermiintegrals.F90 boltztrap-1.2.5/src/fer
      end do
      WRITE (un_trfix,*)
      WRITE (un_ctfix,*)
-@@ -203,6 +253,14 @@
+@@ -203,6 +258,14 @@
    close (un_ctfix)
    close (un_htfix)
  
@@ -143,7 +148,7 @@ diff -ur boltztrap-1.2.5_original/src/fermiintegrals.F90 boltztrap-1.2.5/src/fer
  END SUBROUTINE fermiintegrals
  
  
-@@ -214,7 +272,7 @@
+@@ -214,7 +277,7 @@
  !----------------------------------------------------------------------------
  subroutine fermiint_fix_ef_T(volume, efermi, deltaef, ebmin, temp, &
      unit_tr, unit_cond, unit_hall, npoints, dos1, dos_sigxy, dos_sigxyz, spinorbit, icut1, prtef, &
@@ -152,7 +157,7 @@ diff -ur boltztrap-1.2.5_original/src/fermiintegrals.F90 boltztrap-1.2.5/src/fer
  
   USE constants
   USE input
-@@ -234,6 +292,10 @@
+@@ -234,6 +297,10 @@
  
   type(fermispl_type), intent(in) :: splobj
  
@@ -163,7 +168,7 @@ diff -ur boltztrap-1.2.5_original/src/fermiintegrals.F90 boltztrap-1.2.5/src/fer
  ! local vars
   INTEGER                :: ialp,ibet
   INTEGER                :: i,j,k
-@@ -249,9 +311,15 @@
+@@ -249,9 +316,15 @@
   REAL(8)                :: cond(3,3),nu(3,3),kappa(3,3),sigxyz(3,3,3)
   REAL(8)                :: minv_sigxy(3,3),seebeck(3,3),thermal(3,3),hall(3,3,3)
  
@@ -179,7 +184,7 @@ diff -ur boltztrap-1.2.5_original/src/fermiintegrals.F90 boltztrap-1.2.5/src/fer
  !source
   specheat=ZERO
   sumelec=ZERO
-@@ -287,6 +355,67 @@
+@@ -287,6 +360,67 @@
          &           * taureffact)) )
      end if
  
@@ -247,7 +252,7 @@ diff -ur boltztrap-1.2.5_original/src/fermiintegrals.F90 boltztrap-1.2.5/src/fer
      factor1=fermi(ene,efermi,temp)*spinorbit
      factor2=dfermide(ene,efermi,temp)*spinorbit
      factor3=dfermidt(ene,efermi,temp)*spinorbit
-@@ -326,6 +455,28 @@
+@@ -326,6 +460,28 @@
         ENDDO
      ENDDO
      thermal(1:3,1:3)=kappa(1:3,1:3)
@@ -276,7 +281,7 @@ diff -ur boltztrap-1.2.5_original/src/fermiintegrals.F90 boltztrap-1.2.5/src/fer
      hall(1:3,1:3,1:3)=ZERO
      DO i=1,3
         DO j=1,3
-@@ -360,6 +511,8 @@
+@@ -360,6 +516,8 @@
     WRITE(unit_hall,102) temp,sumelec,hall(1:3,1:3,1:3),efermi/RYDBERG ! **** c11,15,25 are yzx,zxy,xyz respectively ***
   end if
  
@@ -286,8 +291,8 @@ diff -ur boltztrap-1.2.5_original/src/fermiintegrals.F90 boltztrap-1.2.5/src/fer
   101  FORMAT(F10.5,F10.4,F16.8,27E16.8)
  ! same without the Fermi energy
 diff -ur boltztrap-1.2.5_original/src/m_interfaces.F90 boltztrap-1.2.5/src/m_interfaces.F90
---- boltztrap-1.2.5_original/src/m_interfaces.F90	2020-02-10 06:16:27.099357000 -0800
-+++ boltztrap-1.2.5/src/m_interfaces.F90	2020-02-10 06:16:38.549439642 -0800
+--- boltztrap-1.2.5_original/src/m_interfaces.F90	2013-11-20 09:21:58.000000000 -0800
++++ boltztrap-1.2.5/src/m_interfaces.F90	2021-11-07 05:37:29.225182016 -0800
 @@ -119,13 +119,13 @@
  end interface
  

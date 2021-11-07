@@ -1,7 +1,7 @@
 diff -ur BoltzTraP2_original/BoltzTraP2/bandlib.py BoltzTraP2/BoltzTraP2/bandlib.py
---- BoltzTraP2_original/BoltzTraP2/bandlib.py	2020-02-09 10:57:33.905667000 -0800
-+++ BoltzTraP2/BoltzTraP2/bandlib.py	2020-02-09 10:58:38.479068674 -0800
-@@ -380,7 +380,15 @@
+--- BoltzTraP2_original/BoltzTraP2/bandlib.py	2021-11-07 06:04:56.652761000 -0800
++++ BoltzTraP2/BoltzTraP2/bandlib.py	2021-11-07 06:06:06.229697823 -0800
+@@ -393,7 +393,15 @@
      return BOLTZMANN_SI * nruter
  
  
@@ -18,7 +18,7 @@ diff -ur BoltzTraP2_original/BoltzTraP2/bandlib.py BoltzTraP2/BoltzTraP2/bandlib
      """Compute the moments of the FD distribution over the band structure.
  
      Args:
-@@ -391,6 +399,12 @@
+@@ -404,6 +412,12 @@
          Tr: array of temperature values
          dosweight: maximum occupancy of an electron mode
          cdos: "curvature DOS" if available
@@ -31,7 +31,7 @@ diff -ur BoltzTraP2_original/BoltzTraP2/bandlib.py BoltzTraP2/BoltzTraP2/bandlib
  
      Returns:
          Five numpy arrays, namely:
-@@ -407,6 +421,8 @@
+@@ -420,6 +434,8 @@
             taking the occupancies into account.
          where nT and nmu are the sizes of Tr and mur, respectively.
      """
@@ -40,7 +40,7 @@ diff -ur BoltzTraP2_original/BoltzTraP2/bandlib.py BoltzTraP2/BoltzTraP2/bandlib
      kBTr = np.array(Tr) * BOLTZMANN
      iu0 = np.triu_indices(3)
      ido = np.tril_indices(3, -1)
-@@ -424,16 +440,27 @@
+@@ -437,16 +453,27 @@
      de = epsilon[1] - epsilon[0]
      for iT, kBT in enumerate(kBTr):
          for imu, mu in enumerate(mur):
@@ -71,7 +71,7 @@ diff -ur BoltzTraP2_original/BoltzTraP2/bandlib.py BoltzTraP2/BoltzTraP2/bandlib
                  L11[iT, imu] = -cint.sum(axis=3) * de
      return N, L0, L1, L2, L11
  
-@@ -555,3 +582,108 @@
+@@ -569,3 +596,109 @@
      nruter = eband.copy()
      nruter[conduction_mask, :] += delta
      return nruter
@@ -138,7 +138,8 @@ diff -ur BoltzTraP2_original/BoltzTraP2/bandlib.py BoltzTraP2/BoltzTraP2/bandlib
 +
 +    EPS12 = 1e-12
 +    nepa = en.shape[0]
-+    ww = wavg
++    # avoid the infrared divergence of the Bose-Einstein distribution
++    ww = np.clip(wavg, np.sqrt(20), None)
 +
 +    gj = np.empty(nbinmax, float)
 +    gk = np.empty(2, float)
