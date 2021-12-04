@@ -90,7 +90,7 @@ diff -ur boltztrap-1.2.5_original/src/fermiintegrals.F90 boltztrap-1.2.5/src/fer
 +
 +    ! avoid the infrared divergence of the Bose-Einstein distribution
 +    do ll = 1, nmodes
-+      wavg(ll) = max(wavg(ll), sqrt(2.0d1))
++      wavg(ll) = max(wavg(ll), 20.0d0)
 +    enddo
 +
 +    ! convert edge & step from eV to Ha

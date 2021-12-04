@@ -139,7 +139,7 @@ diff -ur BoltzTraP2_original/BoltzTraP2/bandlib.py BoltzTraP2/BoltzTraP2/bandlib
 +    EPS12 = 1e-12
 +    nepa = en.shape[0]
 +    # avoid the infrared divergence of the Bose-Einstein distribution
-+    ww = np.clip(wavg, np.sqrt(20), None)
++    ww = np.clip(wavg, 20.0, None)
 +
 +    gj = np.empty(nbinmax, float)
 +    gk = np.empty(2, float)
