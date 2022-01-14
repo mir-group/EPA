@@ -11,15 +11,7 @@ diff -ur boltztrap-1.2.5_original/src/BoltzTraP.F90 boltztrap-1.2.5/src/BoltzTra
  
    WRITE(6,*) '================ BoltzTraP vs 1.2.5 ============='
    CALL gtfnam(deffn,errfn,iproc)
-@@ -116,6 +119,7 @@
-     OPEN (un_phdosxy,FILE=trim(FNAME)//'.phspeed', STATUS='unknown', FORM='formatted')
-     OPEN (un_phdosxyz,FILE=trim(FNAME)//'.phmass', STATUS='unknown', FORM='formatted')
-     OPEN (un_dosphdrag,FILE=trim(FNAME)//'.phdrag', STATUS='unknown', FORM='formatted')
-+    OPEN (un_ke0j,FILE=trim(FNAME)//'.ke0j', STATUS='unknown', FORM='formatted')
-   end if
-   IF (iunit==un_ene) enefnup=fname
-   IF (iunit==un_tau) tauinput=.TRUE.
-@@ -334,7 +338,7 @@
+@@ -334,7 +337,7 @@
    ELSE IF(modus2=='BOLTZ' .or. modus2=='DRAG') THEN
       ! dos and fermiint communicate via file units un_dos, un_dosxy, un_dosxyz = 49-51.
       write (6,*) 'Calling FermiIntegrals'
