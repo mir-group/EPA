@@ -13,6 +13,10 @@ There are two examples, silicon and half-Heusler HfCoSb (from the paper above), 
 5.  Run **epa.x** to read the electron-phonon coupling matrix elements from file 'silicon.epa.k', average their absolute squared values over wavevector directions, and write them to file 'silicon.epa.e'
 6.  Run **BoltzTraP** to read the averaged squared absolute electron-phonon coupling matrix elements from file 'silicon.epa.e' and compute the transport properties
 
+## Step 1
+
+You have to use metallic occupations even for semiconducting systems. This is because the electron-phonon coupling in **ph.x** is only implemented for metallic systems. It works fine for semiconducting systems, but only by using this trick with metallic occupations. Note that you can use any occupations (fixed or smearing) and they produce identical results for semiconducting systems, but not the other way around - using fixed occupations for metallic systems will give wrong results.
+
 ## Step 5
 
 Format of the input file 'silicon.epa.in' for **epa.x**:
