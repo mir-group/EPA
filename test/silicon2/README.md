@@ -10,7 +10,10 @@
 
 ### Output files
 
-| File name             | Produced by           | Method |
-|-----------------------|-----------------------|--------|
-| **silicon_crt.trace** | **silicon_crt.py**    | CRT    |
-| **silicon_epa.trace** | **silicon_epa.py**    | EPA    |
+| File name                | Produced by           | Method |
+|--------------------------|-----------------------|--------|
+| **silicon_crt.trace**    | **silicon_crt.py**    | CRT    |
+| **silicon_crt.condtens** | **silicon_crt.py**    | CRT    |
+| **silicon_epa.trace**    | **silicon_epa.py**    | EPA    |
+| **silicon_epa.condtens** | **silicon_epa.py**    | EPA    |
+

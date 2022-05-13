@@ -9,6 +9,7 @@ from BoltzTraP2 import units
 dirname = './'
 fepa = dirname + 'silicon.epa.e'
 ftr = dirname + 'silicon_epa.trace'
+fct = dirname + 'silicon_epa.condtens'
 RYDBERG = 0.5
 doping_level = 0.01
 
@@ -59,18 +60,18 @@ for iT, T in enumerate(Tr):
 
 # Rescale the carrier count into a volumetric density in cm^-3
 #N = -N / (volume / (units.Meter / 100) ** 3)
+# Transform the transport coefficients to more convenient units
+sigma *= 1e-5 # kS / cm
+seebeck *= 1e6  # uV / K
+kappa *= 1e-2 # W / cm / K
 # Obtain the scalar conductivity and Seebeck coefficient
 sigmatr = sigma.trace(axis1=1, axis2=2) / 3
 seebecktr = seebeck.trace(axis1=1, axis2=2) / 3
 kappatr = kappa.trace(axis1=1, axis2=2) / 3
 # Compute the scalar power factor
 #P = sigmatr * seebecktr * seebecktr
-# Transform these quantities to more convenient units
-sigmatr *= 1e-5 # kS / cm
-seebecktr *= 1e6  # uV / K
-kappatr *= 1e-2 # W / cm / K
 #P *= 1e4 # uW / cm / K^2
-lorenz = 1e5 * kappatr / (sigmatr * Tr) # 10^-8 W Ohm / K^2
+#lorenz = 1e5 * kappatr / (sigmatr * Tr) # 10^-8 W Ohm / K^2
 
 #h = open(ftr, 'w')
 #h.write('#       Ef[Ry] T [K]            N         DOS(Ef)           S             s/t               R_H        kappa0         c                 chi\n')
@@ -82,5 +83,10 @@ lorenz = 1e5 * kappatr / (sigmatr * Tr) # 10^-8 W Ohm / K^2
 
 h = open(ftr, 'w')
 for iT, T in enumerate(Tr):
-    h.write('{0:10.4f}{1:16.8f}{2:16.8f}{3:16.8f}\n'.format(T, sigmatr[iT], seebecktr[iT], lorenz[iT]))
+    h.write('{0:10.4f}{1:16.8f}{2:16.8f}{3:16.8f}\n'.format(T, sigmatr[iT], seebecktr[iT], kappatr[iT]))
+h.close()
+
+h = open(fct, 'w')
+for iT, T in enumerate(Tr):
+    h.write(('{:10.4f}' + '{:16.8f}' * 27 + '\n').format(T, *tuple(sigma[iT].flatten()), *tuple(seebeck[iT].flatten()), *tuple(kappa[iT].flatten())))
 h.close()
