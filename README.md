@@ -49,8 +49,9 @@ Look at your band structure to determine the energy range covered by the valence
 
 There are several points to note about `countv` and `countc` values:
 * The electron energy dispersion is usually not homogeneous, which means that for the same grid step, some energy bins will have small values of `countv` and `countc` while other energy bins with have large values of `countv` and `countc`.
-* If the energy grids span multiple manifolds of bands separated by gaps, the energy bins within these gaps will have zeros in `countv` and `countc` columns. These zeros can be safely ignored.
+* If the energy grids span multiple manifolds of bands separated by gaps (zero-DOS regions), the energy bins within these gaps will have zeros in `countv` and `countc` columns. These zeros can be safely ignored.
 * If the numbers of bins in the valence and conduction energy grids are different, the undefined energy bins will be padded with zeros in `countv` and `countc` columns. These zeros can be safely ignored.
+* Some of the energy bins in finite-DOS regions may have zeros in `countv` and `countc` columns due to grid steps which are too small. This will cause spikes in the tau-epsilon dependence (inverse tau dropping to zero and tau jumping to infinity in these energy bins), which in turn will result in spikes or oscillations in transport integrals. You must increase energy grid steps or increase the numbers of k- and/or q-points to get rid of these zeros.
 
 ## Step 6
 
